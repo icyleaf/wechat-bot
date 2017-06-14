@@ -23,8 +23,8 @@ module RBChat
       def request(verb, url, options = {})
         url = (url =~ /^http/) ? url : build_uri(url)
 
-        client = prepare_request(url)
-        response = client.request(verb, url, options)
+        prepare_request(url)
+        response = @client.request(verb, url, options)
         update_cookies(response.cookies)
 
         response
@@ -33,7 +33,7 @@ module RBChat
       private
 
       def prepare_request(url)
-        client = ::HTTP.headers(user_agent: USER_AGENT)
+        @client = ::HTTP.headers(user_agent: USER_AGENT)
 
         uri = URI(url)
         unless @cookies.empty?(uri)
@@ -43,11 +43,11 @@ module RBChat
           end
 
           unless cookies.empty?(uri)
-            client = client.cookies(@cookies)
+            @client = @client.cookies(@cookies)
           end
         end
 
-        client
+        @client
       end
 
       def update_cookies(cookies)

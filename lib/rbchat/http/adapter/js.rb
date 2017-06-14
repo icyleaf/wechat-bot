@@ -16,12 +16,11 @@ module RBChat
             key, value = item.split(/\s*=\s*/, 2)
             next unless key || value
             key = key.split(".")[-1]
-            value = value.gsub(/^["']*(\S+?)["']*\s*;\s*$/, '\1')
-            value = value.to_i if value =~ /^\d+$/
-
-            obj[key] = value
+            obj[key] = eval(value)
           end
         end
+
+        private
       end
     end
   end

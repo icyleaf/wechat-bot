@@ -12,15 +12,17 @@ module RBChat
       @session = HTTP::Session.new
 
       @is_logged = false
+      @is_alive = false
       @login_session = {}
     end
 
     def login
       return @logger.info("你已经登录") if logged?
 
-      i = 0
+      check_count = 0
       until logged?
-        @logger.debug "尝试登录 ..."
+        check_count += 1
+        @logger.debug "尝试登录 (#{check_count})..."
         until uuid = qr_uuid
           @logger.info "重新尝试获取登录二维码 ..."
           sleep 1
@@ -29,7 +31,6 @@ module RBChat
         qr_code(uuid)
 
         until logged?
-          @logger.debug "检查登录状态 ..."
           status, status_data = login_status(uuid)
           case status
           when :logged
@@ -47,8 +48,13 @@ module RBChat
         break if logged?
       end
 
-      @logger.info "登录成功！可能需要一点时间加载所需资源"
-      init_web_env
+      @logger.info "等待加载登录后所需资源 ..."
+      wx_init_web
+      wx_status_notify
+
+      @logger.info "用户 [#{@login_session[:user][:nickname]}] 登录成功！"
+
+      runloop
     end
 
     def qr_uuid
@@ -117,17 +123,17 @@ module RBChat
 
     def store_login_data(url)
       r = @session.get(url)
-      @logger.debug "Headers: #{r.headers.to_h}"
       data = r.parse(:xml)
 
-      @login_session[:cookies] = r.cookies
-      @login_session[:current] = {
+      @login_session[:info] = {
         skey: data["error"]["skey"],
-        wxsid: data["error"]["wxsid"],
-        wxuin: data["error"]["wxuin"],
+        sid: data["error"]["wxsid"],
+        uin: data["error"]["wxuin"],
+        device_id: "e#{rand.to_s[2..17]}",
         pass_ticket: data["error"]["pass_ticket"],
       }
-      @login_session[:base] = {
+
+      @login_session[:base_request] = {
         "BaseRequest" => {
           "Skey" => data["error"]["skey"],
           "Sid" => data["error"]["wxsid"],
@@ -152,24 +158,130 @@ module RBChat
       @login_session
     end
 
-    def init_web_env
-      url = "#{@login_session[:servers][:index]}/webwxinit?r=#{unix_timestamp(10)}"
+    def sync_messages
+      puts @login_session
 
-      r = @session.post(url, json: @login_session[:base])
-      data = r.parse(:json)
+      url = "#{@login_session[:servers][:index]}/webwxsync?sid=#{@login_session[:info][:sid]}&skey=#{@login_session[:info][:skey]}&pass_ticket=#{@login_session[:info][:pass_ticket]}"
+      params = @login_session[:base_request].merge({
+        "SyncKey" => @login_session[:sync_key],
+        "rr" => unix_timestamp(10)
+      })
 
-      @logger.debug data
-
-      @login_session[:user] = {
-
-      }
+      r = @session.post(url, json: params) # timeout(write: 10, connect: 10, read: 40).
+      @logger.debug "Content: #{r.to_s}"
     end
 
-    private
+    def wx_init_web
+      url = "#{@login_session[:servers][:index]}/webwxinit?r=#{unix_timestamp(10)}"
+
+      r = @session.post(url, json: @login_session[:base_request])
+      data = r.parse(:json)
+
+      @login_session[:user] = {
+        username: data["User"]["UserName"],
+        nickname: data["User"]["NickName"],
+      }
+
+      @login_session[:sync_key] = data["SyncKey"]
+      # @login_session[:sync_key] = data["SyncKey"]["List"].map {|k| k.values[-1]}.join("|")
+      @login_session[:invite_start_count] = data["InviteStartCount"].to_i
+
+      r
+    end
+
+    def wx_status_notify
+      url = "#{@login_session[:servers][:index]}/webwxstatusnotify?lang=zh_CN&pass_ticket=#{@login_session[:info][:pass_ticket]}"
+      params = @login_session[:base_request].merge({
+        "Code"  => 3,
+        "FromUserName" => @login_session[:user][:username],
+        "ToUserName" => @login_session[:user][:username],
+        "ClientMsgId" => unix_timestamp(10)
+      })
+
+      r = @session.post(url, json: params)
+      # data = r.parse(:json)
+      @logger.debug r.to_s
+
+      r
+    end
+
+    def runloop
+      @is_alive = true
+      retry_count = 0
+
+      while alive?
+        begin
+          status = wx_heartbeat
+          if status[:retcode] == "1100"
+            @logger.info("账户在手机上进行登出操作")
+            @is_alive = false
+          elsif status[:retcode] == "1101"
+            @logger.info("账户已在其他地方进行登录操作")
+            @is_alive = false
+          elsif status[:retcode] == "1102"
+            @logger.info("账户在手机上进行登出操作")
+            @is_alive = false
+          elsif status[:retcode] == "0"
+            if status[:selector].nil?
+              @is_alive = false
+            elsif status[:selector] != "0"
+              sync_messages
+            end
+          end
+
+          retry_count = 0
+        rescue Exception => ex
+          retry_count += 1
+          @logger.error("#{ex.class.name}: #{ex.message}")
+          @logger.error("#{ex.backtrace.join("\n")}")
+        end
+
+        sleep 1
+      end
+
+      logout
+    end
+
+    def wx_heartbeat
+      url = "#{@login_session[:servers][:push]}/synccheck"
+      timestamp = unix_timestamp
+      params = @login_session[:info].merge({
+        "r" => timestamp,
+        "_" => timestamp,
+      })
+
+      r = @session.get(url, params: params) # .timeout(write: 10, connect: 10, read: 40)
+      data = r.parse(:js)
+      @logger.debug "Data: #{data}"
+
+      raise RuntimeException "微信数据同步异常，原始返回内容：#{r.to_s}" if data.nil?
+
+      data["synccheck"]
+    end
+
+    def logout
+      url = "#{@login_session[:servers][:index]}/webwxlogout"
+      params = {
+        "redirect" => 1,
+        "type"  => 1,
+        "skey"  => @login_session[:info][[:skey]]
+      }
+
+      r = @session.get(url, params: params)
+
+      @logger.info "用户 [#{@login_session[:user][:nickname]}] 登出成功！"
+      cleanup!
+    end
 
     def logged?
       @is_logged
     end
+
+    def alive?
+      @is_alive
+    end
+
+    private
 
     def unix_timestamp(digit = 13)
       case digit
@@ -184,6 +296,14 @@ module RBChat
       servers.each_with_object do |(name, host), obj|
         obj[name] = "#{wx_servers[:scheme]}://#{host}#{wx_servers[:path]}"
       end
+    end
+
+    def cleanup!
+      @session = HTTP::Session.new
+
+      @login_session = {}
+      @is_alive = false
+      @is_logged = false
     end
 
     def wx_servers
