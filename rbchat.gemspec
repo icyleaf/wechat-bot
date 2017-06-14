@@ -25,9 +25,12 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "webmock"
+  spec.add_development_dependency "awesome_print"
 
-  spec.add_dependency "http"
-  spec.add_dependency "rqrcode"
-  spec.add_dependency "gemoji"
+  spec.add_dependency "http", "~> 2.2.2"
+  spec.add_dependency "rqrcode", "~> 0.10.1"
+  spec.add_dependency "multi_xml", "~> 0.6.0"
+  # spec.add_dependency "roxml", "~> 3.3.1"
+  # spec.add_dependency "gemoji"
   # spec.add_dependency "os"
 end

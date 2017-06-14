@@ -1,4 +1,8 @@
+require "rbchat/http/adapter/js"
+require "rbchat/http/adapter/xml"
+require "rbchat/http/session"
 require "rbchat/core"
+
 require "rbchat/version"
 
 # Getting uuid of QR code.

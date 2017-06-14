@@ -1,0 +1,1 @@
+window.QRLogin.code = 200; window.QRLogin.uuid = "YbvryPcSTw==";
