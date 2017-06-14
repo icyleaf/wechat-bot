@@ -7,8 +7,8 @@ module RBChat
     QR_FILENAME = "wx_qr.png".freeze
     APP_ID = "wx782c26e4c19acffb"
 
-    def initialize
-      @logger = Logger.new(STDOUT)
+    def initialize(logger = nil)
+      default_logger(logger)
       @session = HTTP::Session.new
 
       @is_logged = false
@@ -282,6 +282,13 @@ module RBChat
     end
 
     private
+
+    def default_logger(logger)
+      @logger = logger || Logger.new($stdout)
+      @logger.formatter = proc do |severity, datetime, progname, msg|
+        "#{severity}\t[#{datetime.strftime('%Y-%m-%d %H:%M:%S.%2N')}]: #{msg}\n"
+      end
+    end
 
     def unix_timestamp(digit = 13)
       case digit
