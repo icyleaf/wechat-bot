@@ -14,4 +14,19 @@ task :bot do
 end
 
 task :test do
+  aa(:key)
+  aa("key")
+  aa(:key, "adfasdf")
+  aa("key", "value")
+  aa(key: "value")
+  aa(key: "value", key2: "value2")
+end
+
+
+def aa(*args)
+  ap args
+end
+
+def bb(**args)
+  ap args
 end

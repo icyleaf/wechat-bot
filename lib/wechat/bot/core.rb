@@ -17,13 +17,15 @@ module WeChat::Bot
     attr_accessor :logger
 
     # @return [UserList<User>]
-    attr_accessor :friend_list
+    attr_reader :friend_list
 
     # @return [UserList<User>]
-    attr_accessor :group_list
+    attr_reader :group_list
 
     # @return [UserList<User>]
-    attr_accessor :mp_list
+    attr_reader :mp_list
+
+    attr_reader :profile
 
     # @return [Config]
     attr_reader :config
@@ -36,6 +38,7 @@ module WeChat::Bot
 
       @config = Configuration.new
       @client = Client.new(self)
+      @profile = User.new(self)
       @friend_list = @group_list = @mp_list = UserList.new(self)
 
       instance_eval(&block) if block_given?

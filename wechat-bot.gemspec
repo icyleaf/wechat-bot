@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "http", "~> 2.2.2"
   spec.add_dependency "rqrcode", "~> 0.10.1"
   spec.add_dependency "multi_xml", "~> 0.6.0"
+  # spec.add_dependency "representable", "~> 3.0.4"
   # spec.add_dependency "roxml", "~> 3.3.1"
   # spec.add_dependency "gemoji"
-  # spec.add_dependency "os"
 end

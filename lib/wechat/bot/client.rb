@@ -56,7 +56,7 @@ module WeChat::Bot
       login_loading
       update_notice_status
 
-      @bot.logger.info "用户 [#{@store[:user][:nickname]}] 登录成功！"
+      @bot.logger.info "用户 [#{@bot.profile.nickname}] 登录成功！"
 
       runloop
     rescue Interrupt
@@ -69,7 +69,7 @@ module WeChat::Bot
         "appid" => @bot.config.app_id,
         "fun" => "new",
         "lang" => "zh_CN",
-        "_" => unix_timestamp,
+        "_" => timestamp,
       }
 
       @bot.logger.info "获取登录唯一标识 ..."
@@ -106,7 +106,7 @@ module WeChat::Bot
     end
 
     def login_status(uuid)
-      timestamp = unix_timestamp
+      timestamp = timestamp
       params = {
         "loginicon" => "true",
         "uuid" => uuid,
@@ -131,62 +131,49 @@ module WeChat::Bot
       r = @session.get(url)
       data = r.parse(:xml)
 
-      @store[:info] = {
+      store(
         skey: data["error"]["skey"],
         sid: data["error"]["wxsid"],
         uin: data["error"]["wxuin"],
         device_id: "e#{rand.to_s[2..17]}",
         pass_ticket: data["error"]["pass_ticket"],
-      }
-
-      @store[:base_request] = {
-        "BaseRequest" => {
-          "Skey" => data["error"]["skey"],
-          "Sid" => data["error"]["wxsid"],
-          "Uin" => data["error"]["wxuin"],
-          "DeviceID" => data["error"]["pass_ticket"],
-        }
-      }
+      )
 
       host = URI.parse(url).host
       @bot.config.servers.each do |server|
         if host == server[:index]
-          @store[:servers] = build_server(server)
+          update_servers(server)
           break
         end
       end
 
-      raise RuntimeError, "没有匹配到对于的微信服务器: #{host}" unless @store[:servers]
+      raise RuntimeError, "没有匹配到对于的微信服务器: #{host}" unless store(:index_url)
 
       r
     end
 
     def login_loading
-      url = "#{@store[:servers][:index]}/webwxinit?r=#{unix_timestamp}"
-
-      r = @session.post(url, json: @store[:base_request])
+      url = "#{store(:index_url)}/webwxinit?r=#{timestamp}"
+      r = @session.post(url, json: params_base_request)
       data = r.parse(:json)
 
-      @store[:user] = {
-        username: data["User"]["UserName"],
-        nickname: data["User"]["NickName"],
-      }
+      store(
+        sync_key: data["SyncKey"],
+        invite_start_count: data["InviteStartCount"].to_i,
+        contacts: data["ContactList"],
+      )
+      @bot.profile.parse(data["User"])
 
-      @store[:info][:sync_key] = build_sync_key(data["SyncKey"])
-      @store[:invite_start_count] = data["InviteStartCount"].to_i
-      @store[:sync_key] = data["SyncKey"]
-
-      @store[:contacts] = data["ContactList"]
       r
     end
 
     def update_notice_status
-      url = "#{@store[:servers][:index]}/webwxstatusnotify?lang=zh_CN&pass_ticket=#{@store[:info][:pass_ticket]}"
-      params = @store[:base_request].merge({
+      url = "#{store(:index_url)}/webwxstatusnotify?lang=zh_CN&pass_ticket=#{store(:pass_ticket)}"
+      params = params_base_request.merge({
         "Code"  => 3,
-        "FromUserName" => @store[:user][:username],
-        "ToUserName" => @store[:user][:username],
-        "ClientMsgId" => unix_timestamp
+        "FromUserName" => @bot.profile.username,
+        "ToUserName" => @bot.profile.username,
+        "ClientMsgId" => timestamp
       })
 
       r = @session.post(url, json: params)
@@ -232,17 +219,19 @@ module WeChat::Bot
     end
 
     def sync_check
-      url = "#{@store[:servers][:push]}/synccheck"
+      url = "#{store(:push_url)}/synccheck"
       params = {
-        "r" => unix_timestamp,
-        "skey" => @store[:info][:skey],
-        "sid" => @store[:info][:sid],
-        "uin" => @store[:info][:uin],
-        "deviceid" => @store[:info][:device_id],
-        "synckey" => @store[:info][:sync_key],
-        "_" => unix_timestamp,
+        "r" => timestamp,
+        "skey" => store(:skey),
+        "sid" => store(:sid),
+        "uin" => store(:uin),
+        "deviceid" => store(:device_id),
+        "synckey" => params_sync_key,
+        "_" => timestamp,
       }
 
+      @bot.logger.debug url
+      @bot.logger.debug params
       r = @session.get(url, params: params, timeout: [10, 60])
       data = r.parse(:js)
 
@@ -254,21 +243,24 @@ module WeChat::Bot
 
     def sync_messages
       query = {
-        "sid" => @store[:info][:sid],
-        "skey" => @store[:info][:skey],
-        "pass_ticket" => @store[:info][:pass_ticket]
+        "sid" => store(:sid),
+        "skey" => store(:skey),
+        "pass_ticket" => store(:pass_ticket)
       }
-      url = "#{@store[:servers][:index]}/webwxsync?#{URI.encode_www_form(query)}"
-      params = @store[:base_request].merge({
-        "SyncKey" => @store[:sync_key],
-        "rr" => "-#{unix_timestamp}"
+      url = "#{store(:index_url)}/webwxsync?#{URI.encode_www_form(query)}"
+      params = params_base_request.merge({
+        "SyncKey" => store(:sync_key),
+        "rr" => "-#{timestamp}"
       })
 
+      @bot.logger.debug url
+      @bot.logger.debug params
       r = @session.post(url, json: params, timeout: [10, 60])
       data = r.parse(:json)
 
-      @store[:info][:sync_key] = build_sync_key(data["SyncKey"])
-      @store[:sync_key] = data["SyncKey"]
+      if data["BaseResponse"]["Ret"] == 0
+        store(:sync_key, data["SyncCheckKey"])
+      end
 
       r
     end
@@ -276,11 +268,11 @@ module WeChat::Bot
     # 获取当前会话列表
     def contacts
       query = {
-        "r" => unix_timestamp,
-        "pass_ticket" => @store[:info][:pass_ticket],
-        "skey" => @store[:info][:skey]
+        "r" => timestamp,
+        "pass_ticket" => store(:pass_ticket),
+        "skey" => store(:skey)
       }
-      url = "#{@store[:servers][:index]}/webwxgetcontact?#{URI.encode_www_form(query)}"
+      url = "#{store(:index_url)}/webwxgetcontact?#{URI.encode_www_form(query)}"
 
       r = @session.post(url, json: {})
       data = r.parse(:json)
@@ -288,16 +280,16 @@ module WeChat::Bot
     end
 
     def logout
-      url = "#{@store[:servers][:index]}/webwxlogout"
+      url = "#{store(:index_url)}/webwxlogout"
       params = {
         "redirect" => 1,
         "type"  => 1,
-        "skey"  => @store[:info][[:skey]]
+        "skey"  => store(:skey)
       }
 
       r = @session.get(url, params: params)
 
-      @bot.logger.info "用户 [#{@store[:user][:nickname]}] 登出成功！"
+      @bot.logger.info "用户 [#{@bot.profile.nickname}] 登出成功！"
       clone!
     end
 
@@ -311,20 +303,46 @@ module WeChat::Bot
 
     private
 
-    def unix_timestamp
-      Time.now.strftime("%s%3N")
-    end
+    def store(*args)
+      return @store[args[0].to_sym] = args[1] if args.size == 2
 
-    def build_server(servers)
-      server_scheme = "https"
-      server_path = "/cgi-bin/mmwebwx-bin"
-      servers.each_with_object({}) do |(name, host), obj|
-        obj[name] = "#{server_scheme}://#{host}#{server_path}"
+      if args.size == 1
+        obj = args[0]
+        return @store[obj.to_sym] if obj.is_a?(String) || obj.is_a?(Symbol)
+
+        obj.each do |key, value|
+          @store[key.to_sym] = value
+        end if obj.is_a?(Hash)
       end
     end
 
-    def build_sync_key(data)
-      data["List"].map {|i| i.values.join("_") }.join("|")
+    def timestamp
+      Time.now.strftime("%s%3N")
+    end
+
+    def update_servers(servers)
+      server_scheme = "https"
+      server_path = "/cgi-bin/mmwebwx-bin"
+      servers.each do |name, host|
+        store("#{name}_url", "#{server_scheme}://#{host}#{server_path}")
+      end
+    end
+
+    def params_base_request
+      return @base_request if @base_request
+
+      @base_request = {
+        "BaseRequest" => {
+          "Skey" => store(:skey),
+          "Sid" => store(:sid),
+          "Uin" => store(:uin),
+          "DeviceID" => store(:pass_ticket),
+        }
+      }
+    end
+
+    def params_sync_key
+      store(:sync_key)["List"].map {|i| i.values.join("_") }.join("|")
     end
 
     def clone!
