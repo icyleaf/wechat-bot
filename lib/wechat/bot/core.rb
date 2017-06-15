@@ -1,4 +1,12 @@
+require "wechat/bot/http/adapter/js"
+require "wechat/bot/http/adapter/xml"
+require "wechat/bot/http/session"
+
 require "wechat/bot/configuration"
+require "wechat/bot/cached_list"
+require "wechat/bot/user_list"
+require "wechat/bot/user"
+
 require "logger"
 
 module WeChat::Bot
@@ -8,27 +16,27 @@ module WeChat::Bot
     # @return [Logger]
     attr_accessor :logger
 
+    # @return [UserList<User>]
+    attr_accessor :friend_list
+
+    # @return [UserList<User>]
+    attr_accessor :group_list
+
+    # @return [UserList<User>]
+    attr_accessor :mp_list
+
     # @return [Config]
     attr_reader :config
 
+    # @return [HTTP::Client]
     attr_reader :client
 
-    # @return [Array<User>]
-    attr_reader :friend_list
-
-    # @return [Array<User>]
-    attr_reader :group_list
-
-    # @return [Array<User>]
-    attr_reader :mp_list
-
     def initialize(&block)
-      @logger = Logger.new(STDOUT)
+      defaults_logger
+
       @config = Configuration.new
-
       @client = Client.new(self)
-
-      @friend_list = @group_list = @mp_list = []
+      @friend_list = @group_list = @mp_list = UserList.new(self)
 
       instance_eval(&block) if block_given?
     end
@@ -45,6 +53,15 @@ module WeChat::Bot
     def start
       @client.login
       @client.run
+    end
+
+    private
+
+    def defaults_logger
+      @logger = Logger.new($stdout)
+      @logger.formatter = proc do |severity, datetime, progname, msg|
+        "#{severity}\t[#{datetime.strftime("%Y-%m-%d %H:%M:%S.%2N")}]: #{msg}\n"
+      end
     end
   end
 end

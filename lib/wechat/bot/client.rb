@@ -11,28 +11,28 @@ module WeChat::Bot
 
     def run
       while true
-        return @logger.info "尚未登录" unless logged? || alive?
+        break unless logged? || alive?
         sleep 1
       end
     rescue Interrupt
-      @logger.info "你使用 Ctrl + C 终止了运行"
+      @bot.logger.info "你使用 Ctrl + C 终止了运行"
     ensure
       logout if logged? && alive?
     end
 
     def login
-      return @logger.info("你已经登录") if logged?
+      return @bot.logger.info("你已经登录") if logged?
 
       check_count = 0
       until logged?
         check_count += 1
-        @logger.debug "尝试登录 (#{check_count})..."
+        @bot.logger.debug "尝试登录 (#{check_count})..."
         until uuid = qr_uuid
-          @logger.info "重新尝试获取登录二维码 ..."
+          @bot.logger.info "重新尝试获取登录二维码 ..."
           sleep 1
         end
 
-        qr_code(uuid)
+        show_qr_code(uuid)
 
         until logged?
           status, status_data = login_status(uuid)
@@ -42,9 +42,9 @@ module WeChat::Bot
             store_login_data(status_data["redirect_uri"])
             break
           when :scaned
-            @logger.info "请在手机微信确认登录 ..."
+            @bot.logger.info "请在手机微信确认登录 ..."
           when :timeout
-            @logger.info "扫描超时，重新获取登录二维码 ..."
+            @bot.logger.info "扫描超时，重新获取登录二维码 ..."
             break
           end
         end
@@ -52,15 +52,15 @@ module WeChat::Bot
         break if logged?
       end
 
-      @logger.info "等待加载登录后所需资源 ..."
+      @bot.logger.info "等待加载登录后所需资源 ..."
       login_loading
       update_notice_status
 
-      @logger.info "用户 [#{@store[:user][:nickname]}] 登录成功！"
+      @bot.logger.info "用户 [#{@store[:user][:nickname]}] 登录成功！"
 
       runloop
     rescue Interrupt
-      @logger.info "你使用 Ctrl + C 终止了运行"
+      @bot.logger.info "你使用 Ctrl + C 终止了运行"
       logout if logged? && alive?
     end
 
@@ -72,15 +72,15 @@ module WeChat::Bot
         "_" => unix_timestamp,
       }
 
-      @logger.info "获取登录唯一标识 ..."
+      @bot.logger.info "获取登录唯一标识 ..."
       r = @session.get("jslogin", params: params)
       data = r.parse(:js)
 
       return data["uuid"] if data["code"] == 200
     end
 
-    def qr_code(uuid, renderer = "ansi")
-      @logger.info "获取登录用扫描二维码 ... "
+    def show_qr_code(uuid, renderer = "ansi")
+      @bot.logger.info "获取登录用扫描二维码 ... "
       url = File.join(@bot.config.auth_url, "l", uuid)
       qrcode = RQRCode::QRCode.new(url)
 
@@ -208,11 +208,11 @@ module WeChat::Bot
                 sync_messages
               end
             elsif status[:retcode] == "1100"
-              @logger.info("账户在手机上进行登出操作")
+              @bot.logger.info("账户在手机上进行登出操作")
               @is_alive = false
               break
             elsif [ "1101", "1102" ].include?(status[:retcode])
-              @logger.info("账户在手机上进行登出或在其他地方进行登录操作操作")
+              @bot.logger.info("账户在手机上进行登出或在其他地方进行登录操作操作")
               @is_alive = false
               break
             end
@@ -220,8 +220,8 @@ module WeChat::Bot
             retry_count = 0
           rescue Exception => ex
             retry_count += 1
-            @logger.error("#{ex.class.name}: #{ex.message}")
-            @logger.error("#{ex.backtrace.join("\n")}")
+            @bot.logger.error("#{ex.class.name}: #{ex.message}")
+            @bot.logger.error("#{ex.backtrace.join("\n")}")
           end
 
           sleep 1
@@ -248,7 +248,7 @@ module WeChat::Bot
 
       # raise RuntimeException "微信数据同步异常，原始返回内容：#{r.to_s}" if data.nil?
 
-      @logger.debug "HeartBeat: #{r.to_s}"
+      @bot.logger.debug "HeartBeat: #{r.to_s}"
       data["synccheck"]
     end
 
@@ -284,7 +284,7 @@ module WeChat::Bot
 
       r = @session.post(url, json: {})
       data = r.parse(:json)
-      @logger.debug "contacts Content: #{data}"
+      @bot.logger.debug "contacts Content: #{data}"
     end
 
     def logout
@@ -297,7 +297,7 @@ module WeChat::Bot
 
       r = @session.get(url, params: params)
 
-      @logger.info "用户 [#{@store[:user][:nickname]}] 登出成功！"
+      @bot.logger.info "用户 [#{@store[:user][:nickname]}] 登出成功！"
       clone!
     end
 
@@ -310,13 +310,6 @@ module WeChat::Bot
     end
 
     private
-
-    def default_logger
-      @logger = Logger.new($stdout)
-      @logger.formatter = proc do |severity, datetime, progname, msg|
-        "#{severity}\t[#{datetime.strftime("%Y-%m-%d %H:%M:%S.%2N")}]: #{msg}\n"
-      end
-    end
 
     def unix_timestamp
       Time.now.strftime("%s%3N")
@@ -335,7 +328,6 @@ module WeChat::Bot
     end
 
     def clone!
-      default_logger
       @session = HTTP::Session.new(@bot.config)
       @is_logged = @is_alive = false
       @store = {}
