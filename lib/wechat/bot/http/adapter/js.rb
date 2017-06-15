@@ -1,7 +1,7 @@
 require "http/mime_type"
 require "http/mime_type/adapter"
 
-module RBChat
+module WeChat::Bot
   module HTTP
     module MimeType
       class JS < ::HTTP::MimeType::Adapter
@@ -25,6 +25,6 @@ module RBChat
     end
   end
 
-  ::HTTP::MimeType.register_adapter "text/javascript", RBChat::HTTP::MimeType::JS
+  ::HTTP::MimeType.register_adapter "text/javascript", WeChat::Bot::HTTP::MimeType::JS
   ::HTTP::MimeType.register_alias   "text/javascript", :js
 end

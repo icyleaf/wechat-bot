@@ -1,28 +1,46 @@
-# Rbchat
+# WeChat-Bot
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rbchat`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Ruby wrapper for WeChat(WeXin)'s Bot API.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rbchat'
+gem 'wechat-bot'
 ```
 
 And then execute:
 
-    $ bundle
+```
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install rbchat
+```
+$ gem install wechat-bot
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+First things first, you need to regiter a account of WeChat, log in with your phone. Then create your WeChat bot like this:
+
+```ruby
+require 'wechat-bot'
+
+bot = Wechat::Bot::Client.new do
+  configure do |config|
+    config.logger = Logger.new(STDERR)
+  end
+
+  on :message, ['ping', 'Ping', 'PING'] do |message|
+    message.reply 'PONG'
+  end
+end
+
+bot.start
+```
 
 ## Development
 
@@ -32,10 +50,8 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/rbchat. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
+Bug reports and pull requests are welcome on GitHub at https://github.com/icyleaf/wechat-bot. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-

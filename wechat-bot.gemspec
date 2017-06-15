@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'rbchat/version'
+require 'wechat/bot/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "rbchat"
-  spec.version       = RBChat::VERSION
+  spec.name          = "wechat-bot"
+  spec.version       = WeChat::Bot::VERSION
   spec.authors       = ["icyleaf"]
   spec.email         = ["icyleaf.cn@gmail.com"]
 
-  spec.summary       = "wechat for ruby"
-  spec.description   = "wechat for ruby"
-  spec.homepage      = "https://github.com/icyleaf/rbchat"
+  spec.summary       = "WeChat Bot for Ruby"
+  spec.description   = "WeChat Bot for Ruby with personal account"
+  spec.homepage      = "https://github.com/icyleaf/wechat-bot"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|

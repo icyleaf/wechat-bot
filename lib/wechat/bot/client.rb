@@ -2,26 +2,19 @@ require "rqrcode"
 require "logger"
 require "uri"
 
-module RBChat
-  class Core
-    QR_FILENAME = "wx_qr.png".freeze
-    APP_ID = "wx782c26e4c19acffb"
-
-    def initialize(logger = nil)
-      default_logger(logger)
-      @session = HTTP::Session.new
-
-      @is_logged = false
-      @is_alive = false
-      @store = {}
+module WeChat::Bot
+  class Client
+    def initialize(bot)
+      @bot = bot
+      clone!
     end
 
     def run
-      return @logger.info "尚未登录" unless logged? || alive?
       while true
+        return @logger.info "尚未登录" unless logged? || alive?
         sleep 1
       end
-    rescue Exception => e
+    rescue Interrupt
       @logger.info "你使用 Ctrl + C 终止了运行"
     ensure
       logout if logged? && alive?
@@ -60,21 +53,20 @@ module RBChat
       end
 
       @logger.info "等待加载登录后所需资源 ..."
-      wx_init_web
-      wx_status_notify
+      login_loading
+      update_notice_status
 
       @logger.info "用户 [#{@store[:user][:nickname]}] 登录成功！"
 
       runloop
-    rescue Exception => e
+    rescue Interrupt
       @logger.info "你使用 Ctrl + C 终止了运行"
-    ensure
       logout if logged? && alive?
     end
 
     def qr_uuid
       params = {
-        "appid" => APP_ID,
+        "appid" => @bot.config.app_id,
         "fun" => "new",
         "lang" => "zh_CN",
         "_" => unix_timestamp,
@@ -89,15 +81,14 @@ module RBChat
 
     def qr_code(uuid, renderer = "ansi")
       @logger.info "获取登录用扫描二维码 ... "
-      url = File.join(HTTP::Session::AUTH_URL, "l", uuid)
-      @logger.debug "URL: #{url}"
+      url = File.join(@bot.config.auth_url, "l", uuid)
       qrcode = RQRCode::QRCode.new(url)
 
       # image = qrcode.as_png(
       #   resize_gte_to: false,
       #   resize_exactly_to: false,
-      #   fill: 'white',
-      #   color: 'black',
+      #   fill: "white",
+      #   color: "black",
       #   size: 120,
       #   border_modules: 4,
       #   module_px_size: 6,
@@ -107,7 +98,7 @@ module RBChat
       svg = qrcode.as_ansi(
         light: "\033[47m",
         dark: "\033[40m",
-        fill_character: '  ',
+        fill_character: "  ",
         quiet_zone_size: 2
       )
 
@@ -158,23 +149,20 @@ module RBChat
       }
 
       host = URI.parse(url).host
-      wx_servers[:servers].each do |server|
+      @bot.config.servers.each do |server|
         if host == server[:index]
-          @store[:servers] = current_server(server)
+          @store[:servers] = build_server(server)
+          break
         end
       end
-      @store[:servers] = {
-        index: "#{wx_servers[:scheme]}://#{host}#{wx_servers[:path]}",
-        file: "#{wx_servers[:scheme]}://#{host}#{wx_servers[:path]}",
-        push: "#{wx_servers[:scheme]}://#{host}#{wx_servers[:path]}",
-      } unless @current_server
 
-      @store[:device_id] = "e#{rand.to_s[2..17]}"
+      raise RuntimeError, "没有匹配到对于的微信服务器: #{host}" unless @store[:servers]
+
       r
     end
 
-    def wx_init_web
-      url = "#{@store[:servers][:index]}/webwxinit?r=#{unix_timestamp(10)}"
+    def login_loading
+      url = "#{@store[:servers][:index]}/webwxinit?r=#{unix_timestamp}"
 
       r = @session.post(url, json: @store[:base_request])
       data = r.parse(:json)
@@ -184,26 +172,24 @@ module RBChat
         nickname: data["User"]["NickName"],
       }
 
-      @store[:sync_key] = data["SyncKey"]
-      # @store[:sync_key] = data["SyncKey"]["List"].map {|k| k.values[-1]}.join("|")
+      @store[:info][:sync_key] = build_sync_key(data["SyncKey"])
       @store[:invite_start_count] = data["InviteStartCount"].to_i
+      @store[:sync_key] = data["SyncKey"]
 
       @store[:contacts] = data["ContactList"]
       r
     end
 
-    def wx_status_notify
+    def update_notice_status
       url = "#{@store[:servers][:index]}/webwxstatusnotify?lang=zh_CN&pass_ticket=#{@store[:info][:pass_ticket]}"
       params = @store[:base_request].merge({
         "Code"  => 3,
         "FromUserName" => @store[:user][:username],
         "ToUserName" => @store[:user][:username],
-        "ClientMsgId" => unix_timestamp(10)
+        "ClientMsgId" => unix_timestamp
       })
 
       r = @session.post(url, json: params)
-      # data = r.parse(:json)
-      @logger.debug r.to_s
       r
     end
 
@@ -214,22 +200,21 @@ module RBChat
       Thread.new do
         while alive?
           begin
-            status = wx_heartbeat
-            if status[:retcode] == "1100"
-              @logger.info("账户在手机上进行登出操作")
-              @is_alive = false
-            elsif status[:retcode] == "1101"
-              @logger.info("账户已在其他地方进行登录操作")
-              @is_alive = false
-            elsif status[:retcode] == "1102"
-              @logger.info("账户在手机上进行登出操作")
-              @is_alive = false
-            elsif status[:retcode] == "0"
+            status = sync_check
+            if status[:retcode] == "0"
               if status[:selector].nil?
                 @is_alive = false
               elsif status[:selector] != "0"
                 sync_messages
               end
+            elsif status[:retcode] == "1100"
+              @logger.info("账户在手机上进行登出操作")
+              @is_alive = false
+              break
+            elsif [ "1101", "1102" ].include?(status[:retcode])
+              @logger.info("账户在手机上进行登出或在其他地方进行登录操作操作")
+              @is_alive = false
+              break
             end
 
             retry_count = 0
@@ -246,19 +231,24 @@ module RBChat
       end
     end
 
-    def wx_heartbeat
+    def sync_check
       url = "#{@store[:servers][:push]}/synccheck"
-      timestamp = unix_timestamp
-      params = @store[:info].merge({
-        "r" => timestamp,
-        "_" => timestamp,
-      })
+      params = {
+        "r" => unix_timestamp,
+        "skey" => @store[:info][:skey],
+        "sid" => @store[:info][:sid],
+        "uin" => @store[:info][:uin],
+        "deviceid" => @store[:info][:device_id],
+        "synckey" => @store[:info][:sync_key],
+        "_" => unix_timestamp,
+      }
 
-      r = @session.get(url, params: params) # .timeout(write: 10, connect: 10, read: 40)
+      r = @session.get(url, params: params, timeout: [10, 60])
       data = r.parse(:js)
 
-      raise RuntimeException "微信数据同步异常，原始返回内容：#{r.to_s}" if data.nil?
+      # raise RuntimeException "微信数据同步异常，原始返回内容：#{r.to_s}" if data.nil?
 
+      @logger.debug "HeartBeat: #{r.to_s}"
       data["synccheck"]
     end
 
@@ -271,18 +261,22 @@ module RBChat
       url = "#{@store[:servers][:index]}/webwxsync?#{URI.encode_www_form(query)}"
       params = @store[:base_request].merge({
         "SyncKey" => @store[:sync_key],
-        "rr" => unix_timestamp(10)
+        "rr" => "-#{unix_timestamp}"
       })
 
-      r = @session.post(url, json: params) # timeout(write: 10, connect: 10, read: 40).
+      r = @session.post(url, json: params, timeout: [10, 60])
       data = r.parse(:json)
-      @logger.debug "sync_messages Content: #{data}"
+
+      @store[:info][:sync_key] = build_sync_key(data["SyncKey"])
+      @store[:sync_key] = data["SyncKey"]
+
+      r
     end
 
     # 获取当前会话列表
     def contacts
       query = {
-        "r" => unix_timestamp(10),
+        "r" => unix_timestamp,
         "pass_ticket" => @store[:info][:pass_ticket],
         "skey" => @store[:info][:skey]
       }
@@ -304,7 +298,7 @@ module RBChat
       r = @session.get(url, params: params)
 
       @logger.info "用户 [#{@store[:user][:nickname]}] 登出成功！"
-      cleanup!
+      clone!
     end
 
     def logged?
@@ -317,70 +311,34 @@ module RBChat
 
     private
 
-    def default_logger(logger)
-      @logger = logger || Logger.new($stdout)
+    def default_logger
+      @logger = Logger.new($stdout)
       @logger.formatter = proc do |severity, datetime, progname, msg|
-        "#{severity}\t[#{datetime.strftime('%Y-%m-%d %H:%M:%S.%2N')}]: #{msg}\n"
+        "#{severity}\t[#{datetime.strftime("%Y-%m-%d %H:%M:%S.%2N")}]: #{msg}\n"
       end
     end
 
-    def unix_timestamp(digit = 13)
-      case digit
-      when 13
-        Time.now.strftime('%s%3N')
-      else
-        Time.now.to_i.to_s
+    def unix_timestamp
+      Time.now.strftime("%s%3N")
+    end
+
+    def build_server(servers)
+      server_scheme = "https"
+      server_path = "/cgi-bin/mmwebwx-bin"
+      servers.each_with_object({}) do |(name, host), obj|
+        obj[name] = "#{server_scheme}://#{host}#{server_path}"
       end
     end
 
-    def current_server(servers)
-      servers.each_with_object do |(name, host), obj|
-        obj[name] = "#{wx_servers[:scheme]}://#{host}#{wx_servers[:path]}"
-      end
+    def build_sync_key(data)
+      data["List"].map {|i| i.values.join("_") }.join("|")
     end
 
-    def cleanup!
-      @session = HTTP::Session.new
-
+    def clone!
+      default_logger
+      @session = HTTP::Session.new(@bot.config)
+      @is_logged = @is_alive = false
       @store = {}
-      @is_alive = false
-      @is_logged = false
-    end
-
-    def wx_servers
-      return @servers if @servers
-
-      @servers = {
-        scheme: "https",
-        path: "/cgi-bin/mmwebwx-bin",
-        servers: [
-          {
-            index: "qq.com",
-            file: "file.wx.qq.com",
-            push: "webpush.wx.qq.com",
-          },
-          {
-            index: "wx2.qq.com",
-            file: "file.wx2.qq.com",
-            push: "webpush.wx.qq.com",
-          },
-          {
-            index: "wx8.qq.com",
-            file: "file.wx8.qq.com",
-            push: "webpush.wx8.qq.com",
-          },
-          {
-            index: "wechat.com",
-            file: "file.web.wechat.com",
-            push: "webpush.web.wechat.com",
-          },
-          {
-            index: "web2.wechat.com",
-            file: "file.web2.wechat.com",
-            push: "webpush.web2.wechat.com",
-          },
-        ],
-      }
     end
   end
 end
