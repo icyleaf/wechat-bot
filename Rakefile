@@ -1,5 +1,6 @@
 require 'bundler/gem_tasks'
-require 'rspec/core/rake_task'
+require 'rdoc/task'
+
 require 'wechat_bot'
 require 'awesome_print'
 

@@ -10,27 +10,37 @@ require "wechat/bot/user"
 require "logger"
 
 module WeChat::Bot
+  # 机器人的核心类
   class Core
-    # The logger s
-    #
     # @return [Logger]
     attr_accessor :logger
 
+    # 好友列表
+    #
     # @return [UserList<User>]
     attr_reader :friend_list
 
+    # 群组列表
+    #
     # @return [UserList<User>]
     attr_reader :group_list
 
+    # 订阅号和公众号列表
+    #
     # @return [UserList<User>]
     attr_reader :mp_list
 
+    # 当前登录用户信息
+    #
+    # @return [User]
     attr_reader :profile
 
-    # @return [Config]
+    # @return [Configuration]
     attr_reader :config
 
-    # @return [HTTP::Client]
+    # 微信 API 客户端
+    #
+    # @return [Client]
     attr_reader :client
 
     def initialize(&block)
@@ -44,18 +54,26 @@ module WeChat::Bot
       instance_eval(&block) if block_given?
     end
 
-    # This method is used to set a bot"s options. It indeed does
-    # nothing else but yielding {Bot#config}, but it makes for a nice DSL.
+    # 用于设置 WeChat::Bot 的配置
+    # 默认无需配置，需要定制化 yield {Core#config} 进行配置
     #
-    # @yieldparam [Struct] config the bot"s config
-    # @return [void]
+    # @yieldparam [Struct] config
+    # @return [void] 没有返回值
     def configure
       yield @config
     end
 
+    # 运行机器人
     def start
       @client.login
-      @client.run
+      while true
+        break unless @client.logged? || @client.alive?
+        sleep 1
+      end
+    rescue Interrupt
+      @logger.info "你使用 Ctrl + C 终止了运行"
+    ensure
+      @client.logout if @client.logged? || @client.alive?
     end
 
     private

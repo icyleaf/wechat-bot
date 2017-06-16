@@ -3,23 +3,14 @@ require "logger"
 require "uri"
 
 module WeChat::Bot
+  # 微信 API 类
   class Client
     def initialize(bot)
       @bot = bot
       clone!
     end
 
-    def run
-      while true
-        break unless logged? || alive?
-        sleep 1
-      end
-    rescue Interrupt
-      @bot.logger.info "你使用 Ctrl + C 终止了运行"
-    ensure
-      logout if logged? && alive?
-    end
-
+    # 微信登录
     def login
       return @bot.logger.info("你已经登录") if logged?
 
@@ -64,122 +55,7 @@ module WeChat::Bot
       logout if logged? && alive?
     end
 
-    def qr_uuid
-      params = {
-        "appid" => @bot.config.app_id,
-        "fun" => "new",
-        "lang" => "zh_CN",
-        "_" => timestamp,
-      }
-
-      @bot.logger.info "获取登录唯一标识 ..."
-      r = @session.get("jslogin", params: params)
-      data = r.parse(:js)
-
-      return data["uuid"] if data["code"] == 200
-    end
-
-    def show_qr_code(uuid, renderer = "ansi")
-      @bot.logger.info "获取登录用扫描二维码 ... "
-      url = File.join(@bot.config.auth_url, "l", uuid)
-      qrcode = RQRCode::QRCode.new(url)
-
-      # image = qrcode.as_png(
-      #   resize_gte_to: false,
-      #   resize_exactly_to: false,
-      #   fill: "white",
-      #   color: "black",
-      #   size: 120,
-      #   border_modules: 4,
-      #   module_px_size: 6,
-      # )
-      # IO.write(QR_FILENAME, image.to_s)
-
-      svg = qrcode.as_ansi(
-        light: "\033[47m",
-        dark: "\033[40m",
-        fill_character: "  ",
-        quiet_zone_size: 2
-      )
-
-      puts svg
-    end
-
-    def login_status(uuid)
-      timestamp = timestamp
-      params = {
-        "loginicon" => "true",
-        "uuid" => uuid,
-        "tip" => 0,
-        "r" => timestamp.to_i / 1579,
-        "_" => timestamp,
-      }
-
-      r = @session.get("cgi-bin/mmwebwx-bin/login", params: params)
-      data = r.parse(:js)
-      status = case data["code"]
-      when 200 then :logged
-      when 201 then :scaned
-      when 408 then :waiting
-      else          :timeout
-      end
-
-      [status, data]
-    end
-
-    def store_login_data(url)
-      r = @session.get(url)
-      data = r.parse(:xml)
-
-      store(
-        skey: data["error"]["skey"],
-        sid: data["error"]["wxsid"],
-        uin: data["error"]["wxuin"],
-        device_id: "e#{rand.to_s[2..17]}",
-        pass_ticket: data["error"]["pass_ticket"],
-      )
-
-      host = URI.parse(url).host
-      @bot.config.servers.each do |server|
-        if host == server[:index]
-          update_servers(server)
-          break
-        end
-      end
-
-      raise RuntimeError, "没有匹配到对于的微信服务器: #{host}" unless store(:index_url)
-
-      r
-    end
-
-    def login_loading
-      url = "#{store(:index_url)}/webwxinit?r=#{timestamp}"
-      r = @session.post(url, json: params_base_request)
-      data = r.parse(:json)
-
-      store(
-        sync_key: data["SyncKey"],
-        invite_start_count: data["InviteStartCount"].to_i,
-        contacts: data["ContactList"],
-      )
-      @bot.profile.parse(data["User"])
-
-      r
-    end
-
-    def update_notice_status
-      url = "#{store(:index_url)}/webwxstatusnotify?lang=zh_CN&pass_ticket=#{store(:pass_ticket)}"
-      params = params_base_request.merge({
-        "Code"  => 3,
-        "FromUserName" => @bot.profile.username,
-        "ToUserName" => @bot.profile.username,
-        "ClientMsgId" => timestamp
-      })
-
-      r = @session.post(url, json: params)
-      r
-    end
-
+    # Runloop 监听
     def runloop
       @is_alive = true
       retry_count = 0
@@ -218,6 +94,142 @@ module WeChat::Bot
       end
     end
 
+    # 获取生成二维码的唯一识别 ID
+    # @return [String]
+    def qr_uuid
+      params = {
+        "appid" => @bot.config.app_id,
+        "fun" => "new",
+        "lang" => "zh_CN",
+        "_" => timestamp,
+      }
+
+      @bot.logger.info "获取登录唯一标识 ..."
+      r = @session.get("jslogin", params: params)
+      data = r.parse(:js)
+
+      return data["uuid"] if data["code"] == 200
+    end
+
+    # 获取二维码图片
+    def show_qr_code(uuid, renderer = "ansi")
+      @bot.logger.info "获取登录用扫描二维码 ... "
+      url = File.join(@bot.config.auth_url, "l", uuid)
+      qrcode = RQRCode::QRCode.new(url)
+
+      # image = qrcode.as_png(
+      #   resize_gte_to: false,
+      #   resize_exactly_to: false,
+      #   fill: "white",
+      #   color: "black",
+      #   size: 120,
+      #   border_modules: 4,
+      #   module_px_size: 6,
+      # )
+      # IO.write(QR_FILENAME, image.to_s)
+
+      svg = qrcode.as_ansi(
+        light: "\033[47m",
+        dark: "\033[40m",
+        fill_character: "  ",
+        quiet_zone_size: 2
+      )
+
+      puts svg
+    end
+
+    # 处理微信登录
+    #
+    # @return [Array]
+    def login_status(uuid)
+      timestamp = timestamp
+      params = {
+        "loginicon" => "true",
+        "uuid" => uuid,
+        "tip" => 0,
+        "r" => timestamp.to_i / 1579,
+        "_" => timestamp,
+      }
+
+      r = @session.get("cgi-bin/mmwebwx-bin/login", params: params)
+      data = r.parse(:js)
+      status = case data["code"]
+      when 200 then :logged
+      when 201 then :scaned
+      when 408 then :waiting
+      else          :timeout
+      end
+
+      [status, data]
+    end
+
+    # 保存登录返回的数据信息
+    #
+    # redirect_uri 有效时间是从扫码成功后算起大概是 300 秒，
+    # 在此期间可以重新登录，但获取的联系人和群 ID 会改变
+    def store_login_data(redirect_url)
+      host = URI.parse(redirect_url).host
+      r = @session.get(redirect_url)
+      data = r.parse(:xml)
+
+      store(
+        skey: data["error"]["skey"],
+        sid: data["error"]["wxsid"],
+        uin: data["error"]["wxuin"],
+        device_id: "e#{rand.to_s[2..17]}",
+        pass_ticket: data["error"]["pass_ticket"],
+      )
+
+      @bot.config.servers.each do |server|
+        if host == server[:index]
+          update_servers(server)
+          break
+        end
+      end
+
+      raise RuntimeError, "没有匹配到对于的微信服务器: #{host}" unless store(:index_url)
+
+      r
+    end
+
+    # 微信登录后初始化工作
+    #
+    # 掉线后 300 秒可以重新使用此 api 登录获取的联系人和群ID保持不变
+    def login_loading
+      url = "#{store(:index_url)}/webwxinit?r=#{timestamp}"
+      r = @session.post(url, json: params_base_request)
+      data = r.parse(:json)
+
+      store(
+        sync_key: data["SyncKey"],
+        invite_start_count: data["InviteStartCount"].to_i,
+        contacts: data["ContactList"],
+      )
+      @bot.profile.parse(data["User"])
+
+      r
+    end
+
+    # 更新通知状态（关闭手机提醒通知）
+    #
+    # 需要解密参数 Code 的值的作用，目前都用的是 3
+    def update_notice_status
+      url = "#{store(:index_url)}/webwxstatusnotify?lang=zh_CN&pass_ticket=#{store(:pass_ticket)}"
+      params = params_base_request.merge({
+        "Code"  => 3,
+        "FromUserName" => @bot.profile.username,
+        "ToUserName" => @bot.profile.username,
+        "ClientMsgId" => timestamp
+      })
+
+      r = @session.post(url, json: params)
+      r
+    end
+
+    # 检查微信状态
+    # 状态会包含是否有新消息、用户状态变化等
+    #
+    # @return [Hash]
     def sync_check
       url = "#{store(:push_url)}/synccheck"
       params = {
@@ -241,6 +253,7 @@ module WeChat::Bot
       data["synccheck"]
     end
 
+    # 根据 `sync_check` 接口返回有数据时进行消息获取
     def sync_messages
       query = {
         "sid" => store(:sid),
@@ -265,7 +278,10 @@ module WeChat::Bot
       r
     end
 
-    # 获取当前会话列表
+    # 获取所有联系人列表
+    # 好友、群组、订阅号、公众号和特殊号
+    #
+    # @return [Hash] 联系人列表
     def contacts
       query = {
         "r" => timestamp,
@@ -279,6 +295,7 @@ module WeChat::Bot
       @bot.logger.debug "contacts Content: #{data}"
     end
 
+    # 登出
     def logout
       url = "#{store(:index_url)}/webwxlogout"
       params = {
@@ -293,16 +310,26 @@ module WeChat::Bot
       clone!
     end
 
+    # 获取登录状态
+    #
+    # @return [Boolean]
     def logged?
       @is_logged
     end
 
+    # 获取是否在线（存活）
+    #
+    # @return [Boolean]
     def alive?
       @is_alive
     end
 
     private
 
+    # 保存和获取存储数据
+    #
+    # @return [Object] 获取数据返回该变量对应的值类型
+    # @return [void] 保存数据时无返回值
     def store(*args)
       return @store[args[0].to_sym] = args[1] if args.size == 2
 
@@ -316,10 +343,12 @@ module WeChat::Bot
       end
     end
 
+    # 生成 13 位 unix 时间戳
     def timestamp
       Time.now.strftime("%s%3N")
     end
 
+    # 匹配对于的微信服务器
     def update_servers(servers)
       server_scheme = "https"
       server_path = "/cgi-bin/mmwebwx-bin"
@@ -328,6 +357,7 @@ module WeChat::Bot
       end
     end
 
+    # 微信接口请求参数 BaseRequest
     def params_base_request
       return @base_request if @base_request
 
@@ -341,10 +371,12 @@ module WeChat::Bot
       }
     end
 
+    # 微信接口参数序列后的 SyncKey
     def params_sync_key
       store(:sync_key)["List"].map {|i| i.values.join("_") }.join("|")
     end
 
+    # 初始化变量
     def clone!
       @session = HTTP::Session.new(@bot.config)
       @is_logged = @is_alive = false

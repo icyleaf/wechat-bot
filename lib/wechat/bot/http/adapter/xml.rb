@@ -6,13 +6,17 @@ require "multi_xml"
 module WeChat::Bot
   module HTTP
     module MimeType
+      # XML 代码解析
+      # 提示：不可逆转
       class XML < ::HTTP::MimeType::Adapter
         # Encodes object to js
         def encode(obj)
           "" # NO NEED encode
         end
 
-        # Decodes js
+        # 转换 XML 代码为 Hash
+        #
+        # @return [Hash]
         def decode(str)
           MultiXml.parse(str)
         end
