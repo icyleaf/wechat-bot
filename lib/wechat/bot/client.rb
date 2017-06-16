@@ -95,6 +95,7 @@ module WeChat::Bot
     end
 
     # 获取生成二维码的唯一识别 ID
+    #
     # @return [String]
     def qr_uuid
       params = {
@@ -203,9 +204,10 @@ module WeChat::Bot
       store(
         sync_key: data["SyncKey"],
         invite_start_count: data["InviteStartCount"].to_i,
-        contacts: data["ContactList"],
       )
+
       @bot.profile.parse(data["User"])
+      @bot.contact_list.batch_sync(data["ContactList"])
 
       r
     end
@@ -227,9 +229,19 @@ module WeChat::Bot
     end
 
     # 检查微信状态
+    #
     # 状态会包含是否有新消息、用户状态变化等
     #
-    # @return [Hash]
+    # @return [Hash] 状态数据数组
+    #  - :retcode
+    #    - 0 成功
+    #    - 1100 用户登出
+    #    - 1101 用户在其他地方登录
+    #  - :selector
+    #    - 0 无消息
+    #    - 2 新消息
+    #    - 6 未知消息类型
+    #    - 7 需要调用 {#sync_messages}
     def sync_check
       url = "#{store(:push_url)}/synccheck"
       params = {
@@ -242,8 +254,6 @@ module WeChat::Bot
         "_" => timestamp,
       }
 
-      @bot.logger.debug url
-      @bot.logger.debug params
       r = @session.get(url, params: params, timeout: [10, 60])
       data = r.parse(:js)
 
@@ -253,7 +263,10 @@ module WeChat::Bot
       data["synccheck"]
     end
 
-    # 根据 `sync_check` 接口返回有数据时进行消息获取
+    # 获取微信消息数据
+    #
+    # 根据 {#sync_check} 接口返回有数据时需要调用该接口
+    # @return [void]
     def sync_messages
       query = {
         "sid" => store(:sid),
@@ -266,8 +279,6 @@ module WeChat::Bot
         "rr" => "-#{timestamp}"
       })
 
-      @bot.logger.debug url
-      @bot.logger.debug params
       r = @session.post(url, json: params, timeout: [10, 60])
       data = r.parse(:json)
 
@@ -279,6 +290,7 @@ module WeChat::Bot
     end
 
     # 获取所有联系人列表
+    #
     # 好友、群组、订阅号、公众号和特殊号
     #
     # @return [Hash] 联系人列表
@@ -292,7 +304,8 @@ module WeChat::Bot
 
       r = @session.post(url, json: {})
       data = r.parse(:json)
-      @bot.logger.debug "contacts Content: #{data}"
+
+      @bot.contact_list.batch_sync(data["MemberList"])
     end
 
     # 登出

@@ -4,8 +4,8 @@ require "wechat/bot/http/session"
 
 require "wechat/bot/configuration"
 require "wechat/bot/cached_list"
-require "wechat/bot/user_list"
-require "wechat/bot/user"
+require "wechat/bot/contact_list"
+require "wechat/bot/contact"
 
 require "logger"
 
@@ -15,24 +15,27 @@ module WeChat::Bot
     # @return [Logger]
     attr_accessor :logger
 
+    # @return [ContactList]
+    attr_reader :contact_list
+
     # 好友列表
     #
-    # @return [UserList<User>]
+    # @return [ContactList<Contact>]
     attr_reader :friend_list
 
     # 群组列表
     #
-    # @return [UserList<User>]
+    # @return [ContactList<Contact>]
     attr_reader :group_list
 
     # 订阅号和公众号列表
     #
-    # @return [UserList<User>]
+    # @return [ContactList<Contact>]
     attr_reader :mp_list
 
     # 当前登录用户信息
     #
-    # @return [User]
+    # @return [Contact]
     attr_reader :profile
 
     # @return [Configuration]
@@ -48,8 +51,8 @@ module WeChat::Bot
 
       @config = Configuration.new
       @client = Client.new(self)
-      @profile = User.new(self)
-      @friend_list = @group_list = @mp_list = UserList.new(self)
+      @profile = Contact.new(self)
+      @contact_list = @friend_list = @group_list = @mp_list = ContactList.new(self)
 
       instance_eval(&block) if block_given?
     end
@@ -66,6 +69,12 @@ module WeChat::Bot
     # 运行机器人
     def start
       @client.login
+      @client.contacts
+
+      @contact_list.each do |c|
+        @logger.debug "[#{c.kind}] #{c.nickname} - #{c.username}"
+      end
+
       while true
         break unless @client.logged? || @client.alive?
         sleep 1

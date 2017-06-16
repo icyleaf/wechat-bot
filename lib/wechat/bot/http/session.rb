@@ -3,7 +3,8 @@ require "http"
 module WeChat::Bot
   module HTTP
     # 可保存 Cookies 的 HTTP 请求类
-    # 简单实现 Python 版本 requests.Session()
+    #
+    # 简单实现 Python 版本 {http://docs.python-requests.org/zh_CN/latest/user/advanced.html#session-objects requests.Session()}
     class Session
       # @return [HTTP::CookieJar]
       attr_reader :cookies
@@ -52,6 +53,7 @@ module WeChat::Bot
       # private
 
       # 组装 request 基础请求参数
+      #
       #  - 设置 User-Agent
       #  - 设置 Cooklies
       #

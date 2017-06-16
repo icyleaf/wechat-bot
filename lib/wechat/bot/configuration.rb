@@ -37,6 +37,17 @@ module WeChat::Bot
           },
         ],
         cookies: "wechat-bot-cookies.txt",
+        special_users: [
+          'newsapp', 'filehelper', 'weibo', 'qqmail',
+          'fmessage', 'tmessage', 'qmessage', 'qqsync',
+          'floatbottle', 'lbsapp', 'shakeapp', 'medianote',
+          'qqfriend', 'readerapp', 'blogapp', 'facebookapp',
+          'masssendapp', 'meishiapp', 'feedsapp', 'voip',
+          'blogappweixin', 'brandsessionholder', 'weixin',
+          'weixinreminder', 'officialaccounts', 'wxitil',
+          'notification_messages', 'wxid_novlwrv3lqwv11',
+          'gh_22b87fa7cb3c', 'userexperience_alarm',
+        ],
         user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36",
       }
     end

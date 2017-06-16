@@ -1,5 +1,5 @@
 module WeChat::Bot
-  class User
+  class Contact
     def self.parse(obj, bot)
       self.new(bot).parse(obj)
     end
@@ -17,12 +17,44 @@ module WeChat::Bot
       attr(:username)
     end
 
+    def kind
+      attr(:kind)
+    end
+
+    def special?
+      kind == :special
+    end
+
+    def group?
+      kind == :group
+    end
+
+    def mp?
+      kind == :mp
+    end
+
     def parse(obj)
       obj.each do |key, value|
         if attribute = mapping[key]
           sync(attribute, value)
         end
       end
+
+      kind = if @bot.config.special_users.include?(obj["UserName"])
+        # 特殊账户
+        :special
+      elsif obj["UserName"].include?("@@")
+        # 群聊
+        :group
+      elsif (obj["VerifyFlag"] & 8) != 0
+        # 公众号
+        :mp
+      else
+        # 普通用户
+        :user
+      end
+
+      sync(:kind, kind)
 
       self
     end
@@ -37,8 +69,12 @@ module WeChat::Bot
       end
     end
 
-    def attr(attribute)
-      instance_variable_get("@#{attribute}")
+    def attr(attribute, data = false)
+      if data
+        @data[attribute.to_sym]
+      else
+        instance_variable_get("@#{attribute}")
+      end
     end
 
     def mapping
