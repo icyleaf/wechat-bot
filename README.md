@@ -31,11 +31,11 @@ require 'wechat-bot'
 
 bot = Wechat::Bot::Client.new do
   configure do |config|
-    config.logger = Logger.new(STDERR)
+    config.cookies = "wx_cookies.txt"
   end
 
-  on :message, ['ping', 'Ping', 'PING'] do |message|
-    message.reply 'PONG'
+  on :text, "hello" do |message|
+    message.reply "Hello, #{message.user.nickname}"
   end
 end
 

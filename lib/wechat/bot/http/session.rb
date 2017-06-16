@@ -9,9 +9,10 @@ module WeChat::Bot
       # @return [HTTP::CookieJar]
       attr_reader :cookies
 
-      def initialize(config)
-        @config ||= Configuration.new
-        load_cookies(@config.cookies)
+      def initialize(bot)
+        @bot = bot
+
+        load_cookies(@bot.config.cookies)
       end
 
       # @return [HTTP::Response]
@@ -36,7 +37,6 @@ module WeChat::Bot
 
       # @return [HTTP::Response]
       def request(verb, url, options = {})
-        url = (url =~ /^http/) ? url : build_uri(url)
         prepare_request(url)
 
         if options[:timeout]
@@ -61,7 +61,7 @@ module WeChat::Bot
       # @param [String] URL
       # @return [HTTP::Request]
       def prepare_request(url)
-        @client = ::HTTP.headers(user_agent: @config.user_agent)
+        @client = ::HTTP.headers(user_agent: @bot.config.user_agent)
         return @client if @cookies.nil?
         return @client = @client.cookies(@cookies)
 
@@ -108,15 +108,6 @@ module WeChat::Bot
         cookies.cookies.each do |cookie|
           @cookies.add(cookie)
         end
-      end
-
-      # 组装内部 URI
-      #
-      # @api private
-      # @param [String] API 路径
-      # @return [String] 完整 URL
-      def build_uri(uri)
-        File.join(@config.auth_url, uri)
       end
     end
   end

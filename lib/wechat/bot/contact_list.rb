@@ -1,6 +1,5 @@
 module WeChat::Bot
   class ContactList < CachedList
-
     # 批量同步联系人数据
     #
     # 更多查看 {#sync} 接口
@@ -26,10 +25,16 @@ module WeChat::Bot
       @mutex.synchronize do
         if contact.nil?
           contact = Contact.parse(data, @bot)
-          @cache[contact.nickname] ||= contact
+          @cache[contact.username] ||= contact
         end
 
         contact
+      end
+    end
+
+    def find(username)
+      @mutex.synchronize do
+        return @cache[username]
       end
     end
   end

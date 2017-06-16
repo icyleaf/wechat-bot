@@ -68,7 +68,22 @@ module WeChat::Bot
               if status[:selector].nil?
                 @is_alive = false
               elsif status[:selector] != "0"
-                sync_messages
+                data = sync_messages
+                if data["AddMsgCount"] > 0
+                  data["AddMsgList"].each do |msg|
+                    next if msg["FromUserName"] == @bot.profile.username
+
+                    message = Message.new(msg, @bot)
+
+                    events = [:message]
+                    events.push(:text) if message.kind == Message::Kind::Text
+                    events.push(:group) if msg["ToUserName"].include?("@@")
+
+                    events.each do |event, *args|
+                      @bot.handlers.dispatch(event, message, args)
+                    end
+                  end
+                end
               end
             elsif status[:retcode] == "1100"
               @bot.logger.info("账户在手机上进行登出操作")
@@ -106,7 +121,7 @@ module WeChat::Bot
       }
 
       @bot.logger.info "获取登录唯一标识 ..."
-      r = @session.get("jslogin", params: params)
+      r = @session.get(File.join(@bot.config.auth_url, "jslogin") , params: params)
       data = r.parse(:js)
 
       return data["uuid"] if data["code"] == 200
@@ -152,7 +167,7 @@ module WeChat::Bot
         "_" => timestamp,
       }
 
-      r = @session.get("cgi-bin/mmwebwx-bin/login", params: params)
+      r = @session.get(File.join(@bot.config.auth_url, "cgi-bin/mmwebwx-bin/login"), params: params)
       data = r.parse(:js)
       status = case data["code"]
       when 200 then :logged
@@ -282,11 +297,11 @@ module WeChat::Bot
       r = @session.post(url, json: params, timeout: [10, 60])
       data = r.parse(:json)
 
-      if data["BaseResponse"]["Ret"] == 0
-        store(:sync_key, data["SyncCheckKey"])
-      end
+      File.open("webwxsync.txt", "a+") {|f| f.write(url); f.write(JSON.pretty_generate(data));f.write("\n\n")}
 
-      r
+      store(:sync_key, data["SyncCheckKey"])
+
+      data
     end
 
     # 获取所有联系人列表
@@ -300,7 +315,7 @@ module WeChat::Bot
         "pass_ticket" => store(:pass_ticket),
         "skey" => store(:skey)
       }
-      url =
+      url = "#{store(:index_url)}/webwxgetcontact?#{URI.encode_www_form(query)}"
 
       r = @session.post(url, json: {})
       data = r.parse(:json)
@@ -321,7 +336,7 @@ module WeChat::Bot
           "Type" => 1,
           "FromUserName" => @bot.profile.username,
           "ToUserName" => to,
-          "Content" => content,
+          "Content" => text,
           "LocalID" => timestamp,
           "ClientMsgId" => timestamp,
         },
@@ -443,7 +458,7 @@ module WeChat::Bot
 
     # 初始化变量
     def clone!
-      @session = HTTP::Session.new(@bot.config)
+      @session = HTTP::Session.new(@bot)
       @is_logged = @is_alive = false
       @store = {}
     end
