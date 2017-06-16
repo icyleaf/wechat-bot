@@ -300,13 +300,65 @@ module WeChat::Bot
         "pass_ticket" => store(:pass_ticket),
         "skey" => store(:skey)
       }
-      url = "#{store(:index_url)}/webwxgetcontact?#{URI.encode_www_form(query)}"
+      url =
 
       r = @session.post(url, json: {})
       data = r.parse(:json)
 
       @bot.contact_list.batch_sync(data["MemberList"])
     end
+
+    # 发送消息
+    #
+    # @param [String] 目标 UserName
+    # @param [String] 消息内容
+    # @return [Boolean] 发送结果状态
+    def send_text(to, text)
+      url = "#{store(:index_url)}/webwxsendmsg"
+      params = params_base_request.merge({
+        "Scene" => 0,
+        "Msg" => {
+          "Type" => 1,
+          "FromUserName" => @bot.profile.username,
+          "ToUserName" => to,
+          "Content" => content,
+          "LocalID" => timestamp,
+          "ClientMsgId" => timestamp,
+        },
+      })
+
+      r = @session.post(url, json: params)
+      r.parse(:json)
+    end
+
+    # 发送图片
+    #
+    # @param [String] 目标 UserName
+    # @param [String, File] 图片名或图片文件
+    # @param [Hash] 非文本消息的参数（可选）
+    # @return [Boolean] 发送结果状态
+    # def send_image(to, image, media_id = nil)
+    #   if media_id.nil?
+    #     media_id = upload_file(image)
+    #   end
+
+    #   url = "#{store(:index_url)}/webwxsendmsgimg?fun=async&f=json"
+
+    #   params = params_base_request.merge({
+    #     "Scene" => 0,
+    #     "Msg" => {
+    #       "Type" => type,
+    #       "FromUserName" => @bot.profile.username,
+    #       "ToUserName" => to,
+    #       "MediaId" => mediaId,
+    #       "LocalID" => timestamp,
+    #       "ClientMsgId" => timestamp,
+    #     },
+    #   })
+
+    #   r = @session.post(url, json: params)
+    #   r.parse(:json)
+    # end
 
     # 登出
     def logout

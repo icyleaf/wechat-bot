@@ -75,6 +75,8 @@ module WeChat::Bot
         @logger.debug "[#{c.kind}] #{c.nickname} - #{c.username}"
       end
 
+      r = @client.send_text("filehelper", "Hello world")
+
       while true
         break unless @client.logged? || @client.alive?
         sleep 1
