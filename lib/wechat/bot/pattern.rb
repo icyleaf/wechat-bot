@@ -1,4 +1,5 @@
 module WeChat::Bot
+  # 消息匹配
   class Pattern
     # @param [String, Regexp, NilClass, Proc, #to_s] obj The object to
     #   convert to a regexp

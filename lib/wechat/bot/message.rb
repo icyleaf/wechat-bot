@@ -1,4 +1,5 @@
 module WeChat::Bot
+  # 微信消息
   class Message
     # 消息类型
     module Kind

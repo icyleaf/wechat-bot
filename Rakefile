@@ -11,8 +11,7 @@ task :default => :spec
 desc 'Run a sample wechat bot'
 task :bot do
   bot = WeChat::Bot.new do
-    on :text, "ping" do |m|
-
+    on :text, "hello" do |m|
       m.reply "Hello, #{m.user.nickname}"
     end
   end

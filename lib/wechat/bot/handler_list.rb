@@ -1,4 +1,5 @@
 module WeChat::Bot
+  # Handler 列表
   class HandlerList
     include Enumerable
 
@@ -7,6 +8,10 @@ module WeChat::Bot
       @mutex = Mutex.new
     end
 
+    # 注册 Handler
+    #
+    # @param [Handler]
+    # @return [void]
     def register(handler)
       @mutex.synchronize do
         handler.bot.logger.debug "[on handler] Registering handler with pattern `#{handler.pattern}`, reacting on `#{handler.event}`"
@@ -14,6 +19,10 @@ module WeChat::Bot
       end
     end
 
+    # 取消注册 Handler
+    #
+    # @param [Array<Handler>]
+    # @return [void]
     def unregister(*handlers)
       @mutex.synchronize do
         handlers.each do |handler|
@@ -22,6 +31,12 @@ module WeChat::Bot
       end
     end
 
+    # 分派执行 Handler
+    #
+    # @param [Symbol] event
+    # @param [String] message
+    # @param [Array] extra args
+    # @return [Array<Thread>]
     def dispatch(event, message = nil, *args)
       threads = []
 
@@ -44,6 +59,11 @@ module WeChat::Bot
       threads
     end
 
+    # 查找匹配 Handler
+    #
+    # @param [Symbol] type
+    # @param [String] message
+    # @return [Hander]
     def find(type, message = nil)
       if handlers = @handlers[type]
         if message.nil?
@@ -62,6 +82,9 @@ module WeChat::Bot
       @handlers.values.flatten.each(&block)
     end
 
+    # 停止运行所有 Handler
+    #
+    # @return [void]
     def stop_all
       each { |h| h.stop }
     end

@@ -1,5 +1,5 @@
-
 module WeChat::Bot
+  # Handler
   class Handler
     # @return [Core]
     attr_reader :bot
@@ -42,6 +42,12 @@ module WeChat::Bot
       @thread_group = ThreadGroup.new
     end
 
+    # 执行 Handler
+    #
+    # @param [Symbol] message
+    # @param [String] captures
+    # @param [Array] Extra Args
+    # @return [Thread]
     def call(message, captures, arguments)
       bargs = captures + arguments
 
@@ -64,6 +70,7 @@ module WeChat::Bot
       thread
     end
 
+    # @retirm [void]
     def stop
       @bot.logger.debug "[Stopping handler] Stopping all threads of handler #{self}: #{@thread_group.list.size} threads..."
       @thread_group.list.each do |thread|

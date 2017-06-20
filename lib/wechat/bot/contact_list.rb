@@ -1,4 +1,5 @@
 module WeChat::Bot
+  # 微信联系人列表
   class ContactList < CachedList
     # 批量同步联系人数据
     #

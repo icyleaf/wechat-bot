@@ -1,4 +1,7 @@
 module WeChat::Bot
+  # 微信联系人
+  #
+  # 可以是用户、公众号、群组等
   class Contact
     def self.parse(obj, bot)
       self.new(bot).parse(obj)
