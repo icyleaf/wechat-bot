@@ -14,6 +14,10 @@ task :bot do
     on :text, "hello" do |m|
       m.reply "Hello, #{m.user.nickname}"
     end
+
+    on :message do |m|
+      m.reply "复读机：#{m.message}"
+    end
   end
 
   bot.start

@@ -47,8 +47,6 @@ module WeChat::Bot
     attr_reader :callback
 
     def initialize(&block)
-      defaults_logger
-
       @config = Configuration.new
       @handlers = HandlerList.new
       @callback = Callback.new(self)
@@ -56,6 +54,8 @@ module WeChat::Bot
       @client = Client.new(self)
       @profile = Contact.new(self)
       @contact_list = ContactList.new(self)
+
+      defaults_logger
 
       instance_eval(&block) if block_given?
     end
@@ -116,6 +116,7 @@ module WeChat::Bot
 
     def defaults_logger
       @logger = Logger.new($stdout)
+      @logger.level = @config.verbose ? Logger::DEBUG : Logger::INFO
       @logger.formatter = proc do |severity, datetime, progname, msg|
         "#{severity}\t[#{datetime.strftime("%Y-%m-%d %H:%M:%S.%2N")}]: #{msg}\n"
       end

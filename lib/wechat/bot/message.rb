@@ -50,7 +50,7 @@ module WeChat::Bot
       # @to_user = @bot.contact_list.find(@raw["ToUserName"])
       @kind = parse_kind(@raw["MsgType"])
       if @kind == Kind::Text
-        @message = @raw["Content"]
+        @message = @raw["Content"].convert_emoji
       end
     end
 

@@ -65,6 +65,8 @@ module WeChat::Bot
     private
 
     def sync(attribute, value, data = false)
+      value = value.convert_emoji if attribute.to_sym == :nickname
+
       if data
         @data[attribute.to_sym] = value
       else

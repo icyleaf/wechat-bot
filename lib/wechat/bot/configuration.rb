@@ -1,12 +1,14 @@
 module WeChat::Bot
   class Configuration < OpenStruct
-    KnownOptions = []
-
     # 默认配置
     #
     # @return [Hash]
     def self.default_config
       {
+        # Bot Configurations
+        verbose: false,
+
+        # WeChat Configurations
         app_id: "wx782c26e4c19acffb",
         auth_url: "https://login.weixin.qq.com",
         servers: [
@@ -61,17 +63,5 @@ module WeChat::Bot
     def to_h
       @table.clone
     end
-
-    # def [](key)
-    #   # FIXME also adjust method_missing
-    #   raise ArgumentError, "Unknown option #{key}" unless self.class::KnownOptions.include?(key)
-    #   @table[key]
-    # end
-
-    # def []=(key, value)
-    #   # FIXME also adjust method_missing
-    #   raise ArgumentError, "Unknown option #{key}" unless self.class::KnownOptions.include?(key)
-    #   modifiable[new_ostruct_member(key)] = value
-    # end
   end
 end

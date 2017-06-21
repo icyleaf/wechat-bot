@@ -49,14 +49,14 @@ module WeChat::Bot
 
       @bot.logger.info "用户 [#{@bot.profile.nickname}] 登录成功！"
 
-      runloop
+      start_runloop_thread
     rescue Interrupt
       @bot.logger.info "你使用 Ctrl + C 终止了运行"
       logout if logged? && alive?
     end
 
     # Runloop 监听
-    def runloop
+    def start_runloop_thread
       @is_alive = true
       retry_count = 0
 
@@ -270,12 +270,12 @@ module WeChat::Bot
       }
 
       r = @session.get(url, params: params, timeout: [10, 60])
-      data = r.parse(:js)
+      data = r.parse(:js)["synccheck"]
 
       # raise RuntimeException "微信数据同步异常，原始返回内容：#{r.to_s}" if data.nil?
 
-      @bot.logger.debug "HeartBeat: #{r.to_s}"
-      data["synccheck"]
+      @bot.logger.debug "HeartBeat: retcode/selector #{data[:retcode]}/#{data[:selector]}"
+      data
     end
 
     # 获取微信消息数据
@@ -297,7 +297,9 @@ module WeChat::Bot
       r = @session.post(url, json: params, timeout: [10, 60])
       data = r.parse(:json)
 
-      File.open("webwxsync.txt", "a+") {|f| f.write(url); f.write(JSON.pretty_generate(data));f.write("\n\n")}
+      @bot.logger.debug "Message: A/M/D/CM #{data["AddMsgCount"]}/#{data["ModContactCount"]}/#{data["DelContactCount"]}/#{data["ModChatRoomMemberCount"]}"
+
+      # File.open("webwxsync.txt", "a+") {|f| f.write(url); f.write(JSON.pretty_generate(data));f.write("\n\n")}
 
       store(:sync_key, data["SyncCheckKey"])
 
