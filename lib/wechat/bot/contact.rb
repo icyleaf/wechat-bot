@@ -3,6 +3,14 @@ module WeChat::Bot
   #
   # 可以是用户、公众号、群组等
   class Contact
+    # 联系人分类
+    module Kind
+      User = :user
+      Group = :group
+      MP = :mp
+      Special = :special
+    end
+
     def self.parse(obj, bot)
       self.new(bot).parse(obj)
     end
@@ -25,15 +33,15 @@ module WeChat::Bot
     end
 
     def special?
-      kind == :special
+      kind == Kind::Special
     end
 
     def group?
-      kind == :group
+      kind == Kind::Group
     end
 
     def mp?
-      kind == :mp
+      kind == Kind::MP
     end
 
     def parse(obj)
@@ -45,16 +53,16 @@ module WeChat::Bot
 
       kind = if @bot.config.special_users.include?(obj["UserName"])
         # 特殊账户
-        :special
+        Kind::Special
       elsif obj["UserName"].include?("@@")
         # 群聊
-        :group
+        Kind::Group
       elsif (obj["VerifyFlag"] & 8) != 0
         # 公众号
-        :mp
+        Kind::MP
       else
         # 普通用户
-        :user
+        Kind::User
       end
 
       sync(:kind, kind)

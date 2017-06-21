@@ -8,13 +8,16 @@ module WeChat::Bot
       Voice = :voice
       ShortVideo = :short_video
       GifEmoji = :gif_emoji
+      ShareLink = :share_link
       # RedPacage = :red_package
       # BusinessCard = :business_card
-      # Link = :link
       # MusicLink = :music_link
       System = :system
       Unkown = :unkown
     end
+
+    GROUP_MESSAGE_REGEX = /^(@\w+):<br\/>(.*)$/
+    AT_MESSAGE_REGEX = /@([^\s]+) (.*)/
 
     attr_reader :raw
 
@@ -25,6 +28,8 @@ module WeChat::Bot
     attr_reader :time
 
     attr_reader :kind
+
+    attr_reader :group
 
     attr_reader :user
 
@@ -38,6 +43,8 @@ module WeChat::Bot
       @time    = Time.now
       @statusmsg_mode = nil
 
+      @bot.logger.debug "Message Raw: #{@raw}"
+
       parse
     end
 
@@ -46,12 +53,21 @@ module WeChat::Bot
     end
 
     def parse
+      parse_source
+      parse_kind
+
       @user = @bot.contact_list.find(@raw["FromUserName"])
       # @to_user = @bot.contact_list.find(@raw["ToUserName"])
-      @kind = parse_kind(@raw["MsgType"])
-      if @kind == Kind::Text
-        @message = @raw["Content"].convert_emoji
+
+      message = @raw["Content"].convert_emoji
+      if match = group_message(message)
+        from_username = match[0]
+        message = match[1]
       end
+
+      @message = message
+
+      parse_events
     end
 
     def match(regexp, type)
@@ -73,25 +89,69 @@ module WeChat::Bot
       @message.match(regexp)
     end
 
-    def parse_kind(type)
-      case type
-      when 1
-        Kind::Text
-      when 3
-        Kind::Image
-      when 34
-        Kind::Voice
-      when 42
-        Kind::BusinessCard
-      when 62
-        Kind::ShortVideo
-      when 47
-        Kind::GifEmoji
-      when 10000
-        Kind::System
-      else
-        Kind::Unkown
+    def parse_source
+      @source = if @bot.config.special_users.include?(@raw["FromUserName"])
+                  # 特殊账户
+                  Contact::Kind::Special
+                elsif @raw["FromUserName"].include?("@@")
+                  # 群聊
+                  Contact::Kind::Group
+                elsif (@raw["RecommendInfo"]["VerifyFlag"] & 8) != 0
+                  # 公众号
+                  Contact::Kind::MP
+                else
+                  # 普通用户
+                  Contact::Kind::User
+                end
+    end
+
+    def parse_kind
+      @kind = case @raw["MsgType"]
+              when 1
+                Kind::Text
+              when 3
+                Kind::Image
+              when 34
+                Kind::Voice
+              when 42
+                Kind::BusinessCard
+              when 62
+                Kind::ShortVideo
+              when 47
+                Kind::GifEmoji
+              when 49
+                Kind::ShareLink
+              when 10000
+                Kind::System
+              else
+                Kind::Unkown
+              end
+    end
+
+    def parse_events
+      @events << :message
+      @events << @kind
+      @events << @group
+
+      if @source == :group && @raw["Content"] =~ /@([^\s]+)\s+(.*)/
+        @events << :at_message
       end
+    end
+
+    def group_message(message)
+      if match = GROUP_MESSAGE_REGEX.match(message)
+        return [match[1], at_message(match[2])]
+      end
+
+      false
+    end
+
+    def at_message(message)
+      if match = AT_MESSAGE_REGEX.match(message)
+        return match[2].strip
+      end
+
+      message
     end
   end
 end

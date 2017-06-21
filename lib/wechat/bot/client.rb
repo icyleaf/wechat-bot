@@ -52,6 +52,8 @@ module WeChat::Bot
       start_runloop_thread
     rescue Interrupt
       @bot.logger.info "你使用 Ctrl + C 终止了运行"
+
+      send_text("filehelper", "宝贝我下线了！")
       logout if logged? && alive?
     end
 
@@ -299,7 +301,7 @@ module WeChat::Bot
 
       @bot.logger.debug "Message: A/M/D/CM #{data["AddMsgCount"]}/#{data["ModContactCount"]}/#{data["DelContactCount"]}/#{data["ModChatRoomMemberCount"]}"
 
-      # File.open("webwxsync.txt", "a+") {|f| f.write(url); f.write(JSON.pretty_generate(data));f.write("\n\n")}
+      File.open("webwxsync.txt", "a+") {|f| f.write(url); f.write(JSON.pretty_generate(data));f.write("\n\n")}
 
       store(:sync_key, data["SyncCheckKey"])
 

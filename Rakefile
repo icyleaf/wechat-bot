@@ -10,7 +10,11 @@ task :default => :spec
 
 desc 'Run a sample wechat bot'
 task :bot do
-  bot = WeChat::Bot.new do
+  WeChat::Bot.new do
+    configure do |c|
+      c.verbose = true
+    end
+
     on :text, "hello" do |m|
       m.reply "Hello, #{m.user.nickname}"
     end
@@ -18,11 +22,18 @@ task :bot do
     on :message do |m|
       m.reply "复读机：#{m.message}"
     end
-  end
-
-  bot.start
+  end.start
 end
 
 task :test do
+  if match = /^@([^\s]+)\s+(.*)$/.match("@爱踢人🍖 123")
+    ap match
+  else
+    puts "1"
+  end
+end
 
+
+def hello
+  [1, 2]
 end

@@ -47,6 +47,8 @@ module WeChat::Bot
     attr_reader :callback
 
     def initialize(&block)
+      defaults_logger
+
       @config = Configuration.new
       @handlers = HandlerList.new
       @callback = Callback.new(self)
@@ -55,11 +57,16 @@ module WeChat::Bot
       @profile = Contact.new(self)
       @contact_list = ContactList.new(self)
 
-      defaults_logger
-
       instance_eval(&block) if block_given?
     end
 
+    # 消息触发器
+    #
+    # @param [String, Symbol, Integer] event
+    # @param [Regexp, Pattern, String] regexp
+    # @param [Array<Object>] args
+    # @yieldparam [Array<String>]
+    # @return [Handler]
     def on(event, regexp = //, *args, &block)
       event = event.to_s.to_sym
 
@@ -92,15 +99,11 @@ module WeChat::Bot
     end
 
     # 运行机器人
+    #
+    # @return [void]
     def start
       @client.login
       @client.contacts
-
-      # @contact_list.each do |c|
-      #   @logger.debug "[#{c.kind}] #{c.nickname} - #{c.username}"
-      # end
-
-      # r = @client.send_text("filehelper", "Hello world")
 
       while true
         break unless @client.logged? || @client.alive?
@@ -109,6 +112,7 @@ module WeChat::Bot
     rescue Interrupt
       @logger.info "你使用 Ctrl + C 终止了运行"
     ensure
+      @client.send_text("filehelper", "宝贝我下线了！")
       @client.logout if @client.logged? || @client.alive?
     end
 
@@ -116,7 +120,7 @@ module WeChat::Bot
 
     def defaults_logger
       @logger = Logger.new($stdout)
-      @logger.level = @config.verbose ? Logger::DEBUG : Logger::INFO
+      # @logger.level = @config.verbose ? Logger::DEBUG : Logger::INFO
       @logger.formatter = proc do |severity, datetime, progname, msg|
         "#{severity}\t[#{datetime.strftime("%Y-%m-%d %H:%M:%S.%2N")}]: #{msg}\n"
       end
