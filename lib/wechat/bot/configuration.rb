@@ -7,6 +7,7 @@ module WeChat::Bot
       {
         # Bot Configurations
         verbose: false,
+        fireman: 'filehelper',
 
         # WeChat Configurations
         app_id: "wx782c26e4c19acffb",

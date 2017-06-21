@@ -24,16 +24,3 @@ task :bot do
     end
   end.start
 end
-
-task :test do
-  if match = /^@([^\s]+)\s+(.*)$/.match("@爱踢人🍖 123")
-    ap match
-  else
-    puts "1"
-  end
-end
-
-
-def hello
-  [1, 2]
-end

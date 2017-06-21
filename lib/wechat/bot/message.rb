@@ -60,6 +60,7 @@ module WeChat::Bot
       # @to_user = @bot.contact_list.find(@raw["ToUserName"])
 
       message = @raw["Content"].convert_emoji
+      message = CGI.unescape_html(message) if @kinde != Message::Kind::Text
       if match = group_message(message)
         from_username = match[0]
         message = match[1]
@@ -108,23 +109,23 @@ module WeChat::Bot
     def parse_kind
       @kind = case @raw["MsgType"]
               when 1
-                Kind::Text
+                Message::Kind::Text
               when 3
-                Kind::Image
+                Message::Kind::Image
               when 34
-                Kind::Voice
+                Message::Kind::Voice
               when 42
-                Kind::BusinessCard
+                Message::Kind::BusinessCard
               when 62
-                Kind::ShortVideo
+                Message::Kind::ShortVideo
               when 47
-                Kind::GifEmoji
+                Message::Kind::GifEmoji
               when 49
-                Kind::ShareLink
+                Message::Kind::ShareLink
               when 10000
-                Kind::System
+                Message::Kind::System
               else
-                Kind::Unkown
+                Message::Kind::Unkown
               end
     end
 

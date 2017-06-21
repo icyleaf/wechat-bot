@@ -50,10 +50,16 @@ module WeChat::Bot
       @bot.logger.info "用户 [#{@bot.profile.nickname}] 登录成功！"
 
       start_runloop_thread
-    rescue Interrupt
-      @bot.logger.info "你使用 Ctrl + C 终止了运行"
+    rescue Exception => e
+      message = if e.is_a?(Interrupt)
+        "你使用 Ctrl + C 终止了运行"
+      else
+        e.message
+      end
 
-      send_text("filehelper", "宝贝我下线了！")
+      @bot.logger.warn message
+
+      send_text(@bot.config.fireman, "[告警] 意外下线\n#{message}")
       logout if logged? && alive?
     end
 

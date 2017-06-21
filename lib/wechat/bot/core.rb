@@ -109,11 +109,17 @@ module WeChat::Bot
         break unless @client.logged? || @client.alive?
         sleep 1
       end
-    rescue Interrupt
-      @logger.info "你使用 Ctrl + C 终止了运行"
-    ensure
-      @client.send_text("filehelper", "宝贝我下线了！")
-      @client.logout if @client.logged? || @client.alive?
+    rescue Exception => e
+      message = if e.is_a?(Interrupt)
+        "你使用 Ctrl + C 终止了运行"
+      else
+        e.message
+      end
+
+      @logger.warn message
+
+      @client.send_text(@config.fireman, "[告警] 意外下线\n#{message}\n#{e.backtrace.join("\n")}")
+      @client.logout if @client.logged? && @client.alive?
     end
 
     private
