@@ -10,17 +10,28 @@ task :default => :spec
 
 desc 'Run a sample wechat bot'
 task :bot do
-  WeChat::Bot.new do
+  bot = WeChat::Bot.new do
     configure do |c|
       c.verbose = true
     end
 
-    on :text, "hello" do |m|
-      m.reply "Hello, #{m.user.nickname}"
-    end
-
     on :message do |m|
-      m.reply "复读机：#{m.message}"
+      case m.kind
+      when WeChat::Bot::Message::Kind::Text
+        m.reply m.message
+      when WeChat::Bot::Message::Kind::Emoticon
+        if m.media_id.to_s.empty?
+          m.reply "微信商店的表情哪有私藏的好用！"
+        else
+          m.reply m.media_id, type: :emoticon
+        end
+      when WeChat::Bot::Message::Kind::ShareLink
+        m.reply "标题：#{m.meta_data.title}\n描述：#{m.meta_data.description}\n#{m.meta_data.link}"
+      else
+        m.reply "[#{m.kind}]消息：#{m.message}"
+      end
     end
-  end.start
+  end
+
+  bot.start
 end

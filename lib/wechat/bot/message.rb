@@ -1,3 +1,5 @@
+require "wechat/bot/message_data/share_link"
+
 module WeChat::Bot
   # 微信消息
   class Message
@@ -19,9 +21,11 @@ module WeChat::Bot
     GROUP_MESSAGE_REGEX = /^(@\w+):<br\/>(.*)$/
     AT_MESSAGE_REGEX = /@([^\s]+) (.*)/
 
-    # @return [String]
+    # 原始消息
+    # @return [Hash<Object, Object>]
     attr_reader :raw
 
+    # 事件列表
     # @return [Array<Symbol>]
     attr_reader :events
 
@@ -31,20 +35,27 @@ module WeChat::Bot
     # @return [Time]
     attr_reader :time
 
+    # 消息类型
     # @return [Message::Kind]
     attr_reader :kind
 
+    # 消息来源
     # @return [Contact::Kind]
     attr_reader :source
 
+    # 消息发送者
+    #
+    # 用户或者群组
     # @return [Contact]
     attr_reader :from
 
-    # @return [Contact]
-    attr_reader :group
-
+    # 消息正文
     # @return [String]
     attr_reader :message
+
+    attr_reader :media_id
+
+    attr_reader :meta_data
 
     def initialize(raw, bot)
       @raw = raw
@@ -54,17 +65,18 @@ module WeChat::Bot
       @time    = Time.now
       @statusmsg_mode = nil
 
-      @bot.logger.debug "Message Raw: #{@raw}"
-
       parse
+
+      @bot.logger.debug "Message Raw: #{@raw}"
     end
 
-    #
-    def reply(text, **user)
-      to_user = user[:username]
-      user[:nickname]
+    # 回复消息
+    def reply(text, **args)
+      to_user = args[:username] || @from.username
+      to_user = @bot.contact_list.find(nickname: args[:nickname]) if args[:nickname]
 
-      @bot.client.send_text(to_user, text)
+      message_type = args[:type] || :text
+      @bot.client.send(message_type, to_user, text)
     end
 
     # 解析微信消息
@@ -83,6 +95,12 @@ module WeChat::Bot
 
       @message = message
       @from = @bot.contact_list.find(username: @raw["FromUserName"])
+      parse_emoticon if @kind == Message::Kind::Emoticon
+
+      case @kind
+      when Message::Kind::ShareLink
+        @meta_data = MessageData::ShareLink.parse(@message)
+      end
 
       parse_events
     end
@@ -184,6 +202,29 @@ module WeChat::Bot
       if @source == :group && @raw["Content"] =~ /@([^\s]+)\s+(.*)/
         @events << :at_message
       end
+    end
+
+    # 解析表情
+    #
+    # 表情分为两种：
+    #   1. 微信商店表情
+    #   1. 自定义表情
+    #
+    # @return [void]
+    def parse_emoticon
+      if @message.empty?
+        @media_id = @raw["MediaId"]
+        # TODO: 解决微信商店表情
+        # file = @bot.client.download_image(@raw["NewMsgId"])
+      else
+        data = MultiXml.parse(@message)
+        @media_id = data["msg"]["emoji"]["md5"]
+      end
+    end
+
+    def parse_share
+      data = MultiXml.parse(@message)
+
     end
 
     # 解析用户的群消息

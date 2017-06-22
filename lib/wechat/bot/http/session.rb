@@ -61,11 +61,11 @@ module WeChat::Bot
       # @param [String] url
       # @return [HTTP::Request]
       def prepare_request(url)
-        @client = ::HTTP.headers(user_agent: @bot.config.user_agent)
+        @client = ::HTTP.headers(user_agent: @bot.config.user_agent, "Range" => "bytes=0-")
         return @client if @cookies.nil?
         return @client = @client.cookies(@cookies)
 
-        # TODO: Only pass same top level domain cookies
+        # TODO: 优化处理同一顶级域名的 cookies
         # uri = URI(url)
         # unless @cookies.empty?(uri)
         #   cookies = @cookies.clone

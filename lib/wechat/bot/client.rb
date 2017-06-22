@@ -307,7 +307,7 @@ module WeChat::Bot
 
       @bot.logger.debug "Message: A/M/D/CM #{data["AddMsgCount"]}/#{data["ModContactCount"]}/#{data["DelContactCount"]}/#{data["ModChatRoomMemberCount"]}"
 
-      File.open("webwxsync.txt", "a+") {|f| f.write(url); f.write(JSON.pretty_generate(data));f.write("\n\n")}
+      File.open("webwxsync.txt", "a+") {|f| f.write(url); f.write(JSON.pretty_generate(data));f.write("\n\n")} if data["AddMsgCount"] > 0 || data["ModContactCount"] > 0 ||data["DelContactCount"] > 0 || data["ModChatRoomMemberCount"] > 0
 
       store(:sync_key, data["SyncCheckKey"])
 
@@ -333,19 +333,37 @@ module WeChat::Bot
       @bot.contact_list.batch_sync(data["MemberList"])
     end
 
+    # 消息发送
+    #
+    # @param [Symbol] type 消息类型，未知类型默认走 :text
+    #   - :text 文本
+    #   - :emoticon 表情
+    #   - :image 图片
+    # @param [String] username
+    # @param [String] content
+    # @return [Hash<Object,Object>] 发送结果状态
+    def send(type, username, content)
+      case type
+      when :emoticon
+        send_emoticon(username, content)
+      else
+        send_text(username, content)
+      end
+    end
+
     # 发送消息
     #
-    # @param [String] to 目标UserName
+    # @param [String] username 目标UserName
     # @param [String] text 消息内容
-    # @return [Boolean] 发送结果状态
-    def send_text(to, text)
+    # @return [Hash<Object,Object>] 发送结果状态
+    def send_text(username, text)
       url = "#{store(:index_url)}/webwxsendmsg"
       params = params_base_request.merge({
         "Scene" => 0,
         "Msg" => {
           "Type" => 1,
           "FromUserName" => @bot.profile.username,
-          "ToUserName" => to,
+          "ToUserName" => username,
           "Content" => text,
           "LocalID" => timestamp,
           "ClientMsgId" => timestamp,
@@ -358,11 +376,11 @@ module WeChat::Bot
 
     # 发送图片
     #
-    # @param [String] 目标 UserName
+    # @param [String] username 目标 UserName
     # @param [String, File] 图片名或图片文件
     # @param [Hash] 非文本消息的参数（可选）
     # @return [Boolean] 发送结果状态
-    # def send_image(to, image, media_id = nil)
+    # def send_image(username, image, media_id = nil)
     #   if media_id.nil?
     #     media_id = upload_file(image)
     #   end
@@ -374,7 +392,7 @@ module WeChat::Bot
     #     "Msg" => {
     #       "Type" => type,
     #       "FromUserName" => @bot.profile.username,
-    #       "ToUserName" => to,
+    #       "ToUserName" => username,
     #       "MediaId" => mediaId,
     #       "LocalID" => timestamp,
     #       "ClientMsgId" => timestamp,
@@ -385,7 +403,68 @@ module WeChat::Bot
     #   r.parse(:json)
     # end
 
+    # 发送表情
+    #
+    # 支持微信表情和自定义表情
+    #
+    # @param [String] username
+    # @param [String] emoticon_id
+    #
+    # @return [Hash<Object,Object>] 发送结果状态
+    def send_emoticon(username, emoticon_id)
+      query = {
+        'fun' => 'sys',
+        'pass_ticket' => store(:pass_ticket),
+        'lang' => 'zh_CN'
+      }
+      url = "#{store(:index_url)}/webwxsendemoticon?#{URI.encode_www_form(query)}"
+      params = params_base_request.merge({
+        "Scene" => 0,
+        "Msg" => {
+          "Type" => 47,
+          'EmojiFlag' => 2,
+          "FromUserName" => @bot.profile.username,
+          "ToUserName" => username,
+          "LocalID" => timestamp,
+          "ClientMsgId" => timestamp,
+        },
+      })
+
+      emoticon_key = emoticon_id.include?("@") ? "MediaId" : "EMoticonMd5"
+      params["Msg"][emoticon_key] = emoticon_id
+
+      r = @session.post(url, json: params)
+      r.parse(:json)
+    end
+
+    # 下载图片
+    #
+    # @param [String] message_id
+    # @return [TempFile]
+    def download_image(message_id)
+      url = "#{store(:index_url)}/webwxgetmsgimg"
+      params = {
+        "msgid" => message_id,
+        "skey" => store(:skey)
+      }
+
+      r = @session.get(url, params: params)
+      body = r.body
+
+      # FIXME: 不知道什么原因，下载的是空字节
+      # 返回的 headers 是 {"Connection"=>"close", "Content-Length"=>"0"}
+      temp_file = Tempfile.new(["emoticon", ".gif"])
+      while data = r.readpartial
+        temp_file.write data
+      end
+      temp_file.close
+
+      temp_file
+    end
+
     # 登出
+    #
+    # @return [void]
     def logout
       url = "#{store(:index_url)}/webwxlogout"
       params = {
@@ -434,11 +513,15 @@ module WeChat::Bot
     end
 
     # 生成 13 位 unix 时间戳
+    # @return [String]
     def timestamp
       Time.now.strftime("%s%3N")
     end
 
     # 匹配对于的微信服务器
+    #
+    # @param [Hash<String, String>] servers
+    # @return [void]
     def update_servers(servers)
       server_scheme = "https"
       server_path = "/cgi-bin/mmwebwx-bin"
@@ -448,6 +531,8 @@ module WeChat::Bot
     end
 
     # 微信接口请求参数 BaseRequest
+    #
+    # @return [Hash<String, String>]
     def params_base_request
       return @base_request if @base_request
 
@@ -462,11 +547,15 @@ module WeChat::Bot
     end
 
     # 微信接口参数序列后的 SyncKey
+    #
+    # @return [void]
     def params_sync_key
       store(:sync_key)["List"].map {|i| i.values.join("_") }.join("|")
     end
 
     # 初始化变量
+    #
+    # @return [void]
     def clone!
       @session = HTTP::Session.new(@bot)
       @is_logged = @is_alive = false

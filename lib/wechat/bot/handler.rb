@@ -60,7 +60,7 @@ module WeChat::Bot
             @block.call(message, *@args, *bargs)
           end
         rescue => e
-          @bot.logger.error e
+          @bot.logger.error "[Thread error] #{e.message} -> #{e.backtrace.join("\n")}"
         ensure
           @bot.logger.debug "[Thread done] For #{self}: #{Thread.current} -- #{@thread_group.list.size - 1} remaining."
         end

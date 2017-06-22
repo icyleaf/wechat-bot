@@ -41,7 +41,8 @@ module WeChat::Bot
     # @return [Contact]
     def find(**args)
       @mutex.synchronize do
-        return @cache[username] if args[:username]
+        return @cache[args[:username]] if args[:username]
+
         if args[:nickname]
           @cache.each do |username, contact|
             return contact if contact.nickname == args[:nickname]
