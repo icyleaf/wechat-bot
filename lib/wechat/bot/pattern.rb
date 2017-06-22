@@ -1,8 +1,7 @@
 module WeChat::Bot
   # 消息匹配
   class Pattern
-    # @param [String, Regexp, NilClass, Proc, #to_s] obj The object to
-    #   convert to a regexp
+    # @param [String, Regexp, NilClass, Proc, #to_s] obj 匹配规则
     # @return [Regexp, nil]
     def self.obj_to_r(obj, anchor = nil)
       case obj

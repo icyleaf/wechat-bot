@@ -50,7 +50,7 @@ module WeChat::Bot
         response
       end
 
-      # private
+      private
 
       # 组装 request 基础请求参数
       #
@@ -58,7 +58,7 @@ module WeChat::Bot
       #  - 设置 Cooklies
       #
       # @api private
-      # @param [String] URL
+      # @param [String] url
       # @return [HTTP::Request]
       def prepare_request(url)
         @client = ::HTTP.headers(user_agent: @bot.config.user_agent)
@@ -84,7 +84,7 @@ module WeChat::Bot
       # 加载外部的 Cookies 数据
       #
       # @api private
-      # @param [String, HTTP::CooieJar] Cookies
+      # @param [String, HTTP::CooieJar] cookies
       # @return [void]
       def load_cookies(cookies)
         @cookies = ::HTTP::CookieJar.new
@@ -100,7 +100,7 @@ module WeChat::Bot
       # 请求后更新存储的 Cookies 数据
       #
       # @api private
-      # @param [String, HTTP::CooieJar] Cookies
+      # @param [String, HTTP::CooieJar] cookies
       # @return [void]
       def update_cookies(cookies)
         return @cookies = cookies if @cookies.nil? || @cookies.empty?

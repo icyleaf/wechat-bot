@@ -4,7 +4,7 @@ module WeChat::Bot
     # 批量同步联系人数据
     #
     # 更多查看 {#sync} 接口
-    # @param [Array<Hash>] 联系人数组
+    # @param [Array<Hash>] list 联系人数组
     # @return [ContactList]
     def batch_sync(list)
       list.each do |item|
@@ -16,7 +16,7 @@ module WeChat::Bot
 
     # 创建用户或更新用户数据
     #
-    # @param [Hash] 微信接口返回的单个用户数据
+    # @param [Hash] data 微信接口返回的单个用户数据
     # @return [Contact]
     def sync(data)
       if data["NickName"] == @bot.profile.nickname
@@ -33,9 +33,20 @@ module WeChat::Bot
       end
     end
 
-    def find(username)
+    # 查找用户
+    #
+    # @param [Hash] args 接受两个参数:
+    #   - :nickname 昵称
+    #   - :username 用户ID
+    # @return [Contact]
+    def find(**args)
       @mutex.synchronize do
-        return @cache[username]
+        return @cache[username] if args[:username]
+        if args[:nickname]
+          @cache.each do |username, contact|
+            return contact if contact.nickname == args[:nickname]
+          end
+        end
       end
     end
   end

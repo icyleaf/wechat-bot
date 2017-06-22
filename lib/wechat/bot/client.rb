@@ -335,8 +335,8 @@ module WeChat::Bot
 
     # 发送消息
     #
-    # @param [String] 目标 UserName
-    # @param [String] 消息内容
+    # @param [String] to 目标UserName
+    # @param [String] text 消息内容
     # @return [Boolean] 发送结果状态
     def send_text(to, text)
       url = "#{store(:index_url)}/webwxsendmsg"

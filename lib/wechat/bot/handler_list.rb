@@ -10,7 +10,7 @@ module WeChat::Bot
 
     # 注册 Handler
     #
-    # @param [Handler]
+    # @param [Handler] handler
     # @return [void]
     def register(handler)
       @mutex.synchronize do
@@ -21,7 +21,7 @@ module WeChat::Bot
 
     # 取消注册 Handler
     #
-    # @param [Array<Handler>]
+    # @param [Array<Handler>] handlers
     # @return [void]
     def unregister(*handlers)
       @mutex.synchronize do
@@ -35,7 +35,7 @@ module WeChat::Bot
     #
     # @param [Symbol] event
     # @param [String] message
-    # @param [Array] extra args
+    # @param [Array<Object>] args
     # @return [Array<Thread>]
     def dispatch(event, message = nil, *args)
       threads = []

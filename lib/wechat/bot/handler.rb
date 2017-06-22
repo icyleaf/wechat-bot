@@ -46,7 +46,7 @@ module WeChat::Bot
     #
     # @param [Symbol] message
     # @param [String] captures
-    # @param [Array] Extra Args
+    # @param [Array] arguments
     # @return [Thread]
     def call(message, captures, arguments)
       bargs = captures + arguments
@@ -70,7 +70,7 @@ module WeChat::Bot
       thread
     end
 
-    # @retirm [void]
+    # @return [void]
     def stop
       @bot.logger.debug "[Stopping handler] Stopping all threads of handler #{self}: #{@thread_group.list.size} threads..."
       @thread_group.list.each do |thread|
