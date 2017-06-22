@@ -105,6 +105,10 @@ module WeChat::Bot
       @client.login
       @client.contacts
 
+      @contact_list.each do |c|
+        @logger.debug "Contact: #{c}"
+      end
+
       while true
         break unless @client.logged? || @client.alive?
         sleep 1

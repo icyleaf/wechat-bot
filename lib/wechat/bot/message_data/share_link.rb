@@ -1,7 +1,7 @@
 module WeChat::Bot::MessageData
   class ShareLink
     def self.parse(raw)
-      ShareLink.new(raw)
+      self.new(raw)
     end
 
     # @return [String]

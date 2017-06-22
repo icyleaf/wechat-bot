@@ -462,6 +462,22 @@ module WeChat::Bot
       temp_file
     end
 
+    # 创建群组
+    #
+    # @param [Array<String>] users
+    # @return [Hash<Object, Object>]
+    def create_group(*users)
+      url = "#{store(:index_url)}/webwxcreatechatroom?r=#{timestamp}"
+      params = params_base_request.merge({
+        "Topic" => "",
+        "MemberCount" => users.size,
+        "MemberList" => users.map { |u| { "UserName" => u } }
+      })
+
+      r = @session.post(url, json: params)
+      data = r.parse(:json)
+    end
+
     # 登出
     #
     # @return [void]
