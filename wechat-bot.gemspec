@@ -24,10 +24,10 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.14"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_development_dependency "yard"
   spec.add_development_dependency "webmock"
   spec.add_development_dependency "awesome_print"
 
+  spec.add_dependency "colorize", "~> 0.8.1"
   spec.add_dependency "http", "~> 2.2.2"
   spec.add_dependency "rqrcode", "~> 0.10.1"
   spec.add_dependency "multi_xml", "~> 0.6.0"

@@ -12,5 +12,9 @@ RSpec.configure do |config|
 end
 
 def load_fixture(name)
-  File.new(File.dirname(__FILE__) + "/fixtures/#{name}")
+  File.new(File.dirname(__FILE__) + "/fixtures/api/#{name}")
+end
+
+def load_content(name)
+  load_fixture(name).readlines.join("\n")
 end

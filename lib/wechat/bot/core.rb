@@ -1,6 +1,8 @@
-require "wechat/bot/http/adapter/js"
-require "wechat/bot/http/adapter/xml"
-require "wechat/bot/http/session"
+require "wechat/bot/configuration"
+require "wechat/bot/cached_list"
+require "wechat/bot/contact_list"
+require "wechat/bot/contact"
+require "wechat/bot/logger"
 
 require "wechat/bot/handler_list"
 require "wechat/bot/handler"
@@ -8,10 +10,9 @@ require "wechat/bot/message"
 require "wechat/bot/pattern"
 require "wechat/bot/callback"
 
-require "wechat/bot/configuration"
-require "wechat/bot/cached_list"
-require "wechat/bot/contact_list"
-require "wechat/bot/contact"
+require "wechat/bot/http/adapter/js"
+require "wechat/bot/http/adapter/xml"
+require "wechat/bot/http/session"
 
 require "logger"
 
@@ -47,8 +48,8 @@ module WeChat::Bot
     attr_reader :callback
 
     def initialize(&block)
-      defaults_logger
-
+      # defaults_logger
+      @logger = Logger.new(STDOUT, self)
       @config = Configuration.new
       @handlers = HandlerList.new
       @callback = Callback.new(self)
@@ -113,27 +114,25 @@ module WeChat::Bot
         break unless @client.logged? || @client.alive?
         sleep 1
       end
+    rescue Interrupt => e
+      message = "你使用 Ctrl + C 终止了运行"
+      @logger.warn(message)
+      @client.send_text(@config.fireman, "[告警] 意外下线\n#{message}\n#{e.backtrace.join("\n")}") if @client.logged? && @client.alive?
     rescue Exception => e
-      message = if e.is_a?(Interrupt)
-        "你使用 Ctrl + C 终止了运行"
-      else
-        e.message
-      end
-
-      @logger.warn message
-
-      @client.send_text(@config.fireman, "[告警] 意外下线\n#{message}\n#{e.backtrace.join("\n")}")
+      message = e.message
+      @logger.fatal(e)
+      @client.send_text(@config.fireman, "[告警] 意外下线\n#{message}\n#{e.backtrace.join("\n")}") if @client.logged? && @client.alive?
+    ensure
       @client.logout if @client.logged? && @client.alive?
     end
 
     private
 
-    def defaults_logger
-      @logger = Logger.new($stdout)
-      # @logger.level = @config.verbose ? Logger::DEBUG : Logger::INFO
-      @logger.formatter = proc do |severity, datetime, progname, msg|
-        "#{severity}\t[#{datetime.strftime("%Y-%m-%d %H:%M:%S.%2N")}]: #{msg}\n"
-      end
-    end
+    # def defaults_logger
+    #   @logger = Logger.new($stdout)
+    #   @logger.formatter = proc do |severity, datetime, progname, msg|
+    #     "#{severity}\t[#{datetime.strftime("%Y-%m-%d %H:%M:%S.%2N")}]: #{msg}\n"
+    #   end
+    # end
   end
 end

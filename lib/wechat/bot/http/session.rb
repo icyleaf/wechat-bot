@@ -47,6 +47,10 @@ module WeChat::Bot
         response = @client.request(verb, url, options)
         update_cookies(response.cookies)
 
+        @bot.logger.verbose "[#{verb.upcase}] #{url}"
+        @bot.logger.verbose "Options: #{options}"
+        @bot.logger.verbose "Response: #{response.body}"
+
         response
       end
 
@@ -78,7 +82,6 @@ module WeChat::Bot
         #   end
         # end
 
-        # @client
       end
 
       # 加载外部的 Cookies 数据

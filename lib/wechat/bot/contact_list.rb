@@ -14,19 +14,21 @@ module WeChat::Bot
       self
     end
 
+    def size
+      @cache.size
+    end
+
     # 创建用户或更新用户数据
     #
     # @param [Hash] data 微信接口返回的单个用户数据
     # @return [Contact]
     def sync(data)
-      if data["NickName"] == @bot.profile.nickname
-        contact = @bot.profile
-      end
-
       @mutex.synchronize do
-        if contact.nil?
-          contact = Contact.parse(data, @bot)
-          @cache[contact.username] ||= contact
+        contact = Contact.parse(data, @bot)
+        if @cache[contact.username]
+          @cache[contact.username].update(data)
+        else
+          @cache[contact.username] = contact
         end
 
         contact

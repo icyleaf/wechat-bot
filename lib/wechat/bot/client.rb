@@ -50,17 +50,6 @@ module WeChat::Bot
       @bot.logger.info "用户 [#{@bot.profile.nickname}] 登录成功！"
 
       start_runloop_thread
-    rescue Exception => e
-      message = if e.is_a?(Interrupt)
-        "你使用 Ctrl + C 终止了运行"
-      else
-        e.message
-      end
-
-      @bot.logger.warn message
-
-      send_text(@bot.config.fireman, "[告警] 意外下线\n#{message}")
-      logout if logged? && alive?
     end
 
     # Runloop 监听
@@ -76,22 +65,7 @@ module WeChat::Bot
               if status[:selector].nil?
                 @is_alive = false
               elsif status[:selector] != "0"
-                data = sync_messages
-                if data["AddMsgCount"] > 0
-                  data["AddMsgList"].each do |msg|
-                    next if msg["FromUserName"] == @bot.profile.username
-
-                    message = Message.new(msg, @bot)
-
-                    events = [:message]
-                    events.push(:text) if message.kind == Message::Kind::Text
-                    events.push(:group) if msg["ToUserName"].include?("@@")
-
-                    events.each do |event, *args|
-                      @bot.handlers.dispatch(event, message, args)
-                    end
-                  end
-                end
+                sync_messages
               end
             elsif status[:retcode] == "1100"
               @bot.logger.info("账户在手机上进行登出操作")
@@ -104,10 +78,9 @@ module WeChat::Bot
             end
 
             retry_count = 0
-          rescue Exception => ex
+          rescue Exception => e
             retry_count += 1
-            @bot.logger.error("#{ex.class.name}: #{ex.message}")
-            @bot.logger.error("#{ex.backtrace.join("\n")}")
+            @bot.logger.fatal(e)
           end
 
           sleep 1
@@ -229,6 +202,7 @@ module WeChat::Bot
         invite_start_count: data["InviteStartCount"].to_i,
       )
 
+      # 保存当前用户信息和最近聊天列表
       @bot.profile.parse(data["User"])
       @bot.contact_list.batch_sync(data["ContactList"])
 
@@ -307,9 +281,26 @@ module WeChat::Bot
 
       @bot.logger.debug "Message: A/M/D/CM #{data["AddMsgCount"]}/#{data["ModContactCount"]}/#{data["DelContactCount"]}/#{data["ModChatRoomMemberCount"]}"
 
-      File.open("webwxsync.txt", "a+") {|f| f.write(url); f.write(JSON.pretty_generate(data));f.write("\n\n")} if data["AddMsgCount"] > 0 || data["ModContactCount"] > 0 ||data["DelContactCount"] > 0 || data["ModChatRoomMemberCount"] > 0
-
       store(:sync_key, data["SyncCheckKey"])
+
+      # 更新已存在的群聊信息、增加新的群聊信息
+      @bot.contact_list.batch_sync(data["ModContactList"]) if data["ModContactCount"] > 0
+
+      if data["AddMsgCount"] > 0
+        data["AddMsgList"].each do |msg|
+          next if msg["FromUserName"] == @bot.profile.username
+
+          message = Message.new(msg, @bot)
+
+          events = [:message]
+          events.push(:text) if message.kind == Message::Kind::Text
+          events.push(:group) if msg["ToUserName"].include?("@@")
+
+          events.each do |event, *args|
+            @bot.handlers.dispatch(event, message, args)
+          end
+        end
+      end
 
       data
     end

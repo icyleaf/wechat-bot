@@ -27,6 +27,8 @@ task :bot do
         end
       when WeChat::Bot::Message::Kind::ShareLink
         m.reply "标题：#{m.meta_data.title}\n描述：#{m.meta_data.description}\n#{m.meta_data.link}"
+      when WeChat::Bot::Message::Kind::System
+        m.reply "系统消息：#{m.message}"
       else
         m.reply "[#{m.kind}]消息：#{m.message}"
       end
