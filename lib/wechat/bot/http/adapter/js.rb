@@ -24,8 +24,6 @@ module WeChat::Bot
             obj[key] = eval(value)
           end
         end
-
-        private
       end
     end
   end

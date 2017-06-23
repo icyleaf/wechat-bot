@@ -162,18 +162,18 @@ module WeChat::Bot
     # @return [void]
     def parse_kind
       kind = if @bot.config.special_users.include?(@raw["UserName"])
-        # 特殊账户
-        Kind::Special
-      elsif @raw["UserName"].include?("@@")
-        # 群聊
-        Kind::Group
-      elsif @raw["VerifyFlag"] && (@raw["VerifyFlag"] & 8) != 0
-        # 公众号
-        Kind::MP
-      else
-        # 普通用户
-        Kind::User
-      end
+               # 特殊账户
+               Kind::Special
+             elsif @raw["UserName"].include?("@@")
+               # 群聊
+               Kind::Group
+             elsif @raw["VerifyFlag"] && (@raw["VerifyFlag"] & 8) != 0
+               # 公众号
+               Kind::MP
+             else
+               # 普通用户
+               Kind::User
+             end
 
       sync(:kind, kind)
     end

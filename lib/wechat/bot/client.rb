@@ -18,7 +18,9 @@ module WeChat::Bot
       until logged?
         check_count += 1
         @bot.logger.debug "尝试登录 (#{check_count})..."
-        until uuid = qr_uuid
+
+        uuid = qr_uuid
+        until uuid
           @bot.logger.info "重新尝试获取登录二维码 ..."
           sleep 1
         end
@@ -440,7 +442,7 @@ module WeChat::Bot
       }
 
       r = @session.get(url, params: params)
-      body = r.body
+      # body = r.body
 
       # FIXME: 不知道什么原因，下载的是空字节
       # 返回的 headers 是 {"Connection"=>"close", "Content-Length"=>"0"}
@@ -466,7 +468,7 @@ module WeChat::Bot
       })
 
       r = @session.post(url, json: params)
-      data = r.parse(:json)
+      r.parse(:json)
     end
 
     # 登出
@@ -480,7 +482,7 @@ module WeChat::Bot
         "skey"  => store(:skey)
       }
 
-      r = @session.get(url, params: params)
+      @session.get(url, params: params)
 
       @bot.logger.info "用户 [#{@bot.profile.nickname}] 登出成功！"
       clone!

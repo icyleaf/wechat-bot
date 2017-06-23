@@ -95,7 +95,7 @@ module WeChat::Bot
 
         if cookies.is_a?(String)
           @cookies.load(cookies) if File.exist?(cookies)
-        elsif
+        else
           @cookies.add(cookies)
         end
       end

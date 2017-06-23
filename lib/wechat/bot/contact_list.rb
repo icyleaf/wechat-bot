@@ -46,7 +46,7 @@ module WeChat::Bot
         return @cache[args[:username]] if args[:username]
 
         if args[:nickname]
-          @cache.each do |username, contact|
+          @cache.each do |_, contact|
             return contact if contact.nickname == args[:nickname]
           end
         end
