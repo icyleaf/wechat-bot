@@ -1,57 +1,23 @@
-# WeChat-Bot
+# wechat-bot
 
-Ruby wrapper for WeChat(WeXin)'s Bot API.
+[![Build Status](https://img.shields.io/travis/icyleaf/wechat-bot.svg?style=flat)](https://travis-ci.org/icyleaf/wechat-bot)
+[![Code Climate](https://img.shields.io/codeclimate/github/icyleaf/wechat-bot.svg?style=flat)](https://codeclimate.com/github/icyleaf/wechat-bot)
+[![Inline docs](http://inch-ci.org/github/icyleaf/wechat-bot.svg?style=flat)](https://inch-ci.org/github/icyleaf/wechat-bot)
+[![Gem version](https://img.shields.io/gem/v/wechat-bot.svg?style=flat)](https://rubygems.org/gems/wechat-bot)
+[![License](https://img.shields.io/badge/license-MIT-red.svg?style=flat)](LICENSE.txt)
 
-## Installation
+微信机器人 Ruby 版本。
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'wechat-bot'
-```
-
-And then execute:
-
-```
-$ bundle
-```
-
-Or install it yourself as:
-
-```
-$ gem install wechat-bot
-```
-
-## Usage
-
-First things first, you need to regiter a account of WeChat, log in with your phone. Then create your WeChat bot like this:
+## 快速上手
 
 ```ruby
 require 'wechat-bot'
 
 bot = Wechat::Bot::Client.new do
-  configure do |config|
-    config.cookies = "wx_cookies.txt"
-  end
-
-  on :text, "hello" do |message|
-    message.reply "Hello, #{message.user.nickname}"
+  on :message, "ping" do |message|
+    message.reply "PONG"
   end
 end
 
 bot.start
 ```
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/icyleaf/wechat-bot. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
-## License
-
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
