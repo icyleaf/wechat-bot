@@ -1,0 +1,3 @@
+--protected
+--exclude samples/
+--files CODE_OF_CONDUCT.md,LICENSE.txt
