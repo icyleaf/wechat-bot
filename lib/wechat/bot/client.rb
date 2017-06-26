@@ -559,7 +559,7 @@ module WeChat::Bot
     #
     # @return [void]
     def params_sync_key
-      store(:sync_key)["List"].map {|i| i.values.join("_") }.join("|")
+      store(:sync_key)["List"].map { |i| i.values.join("_") }.join("|")
     end
 
     # 初始化变量

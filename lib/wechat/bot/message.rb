@@ -68,7 +68,7 @@ module WeChat::Bot
 
       parse
 
-      # @bot.logger.verbose "Message Raw: #{@raw}"
+      @bot.logger.verbose "Message Raw: #{@raw}"
     end
 
     # 回复消息
@@ -77,6 +77,12 @@ module WeChat::Bot
       to_user = @bot.contact_list.find(nickname: args[:nickname]) if args[:nickname]
 
       message_type = args[:type] || :text
+
+      # if @bot.config.special_users.include?(to_user) && to_user != 'filehelper'
+      #   @bot.logger.error "特殊账户无法回复: #{to_user}"
+      #   raise NoReplyException, "特殊账户无法回复: #{to_user}"
+      # end
+
       @bot.client.send(message_type, to_user, text)
     end
 
@@ -129,6 +135,10 @@ module WeChat::Bot
       # end
 
       @message.match(regexp)
+    end
+
+    def at_message?
+      @at_mesage == true
     end
 
     # 解析消息来源
@@ -195,6 +205,9 @@ module WeChat::Bot
     #
     #  - `:message` 用户消息
     #    - `:text` 文本消息
+    #    - `:image` 图片消息
+    #    - `:voice` 语音消息
+    #    - `:short_video` 短视频消息
     #  - `:group` 群聊消息
     #    - `:at_message` @ 消息
     #
@@ -204,8 +217,10 @@ module WeChat::Bot
       @events << @kind
       @events << @source
 
+      @at_mesage = false
       if @source == :group && @raw["Content"] =~ /@([^\s]+)\s+(.*)/
         @events << :at_message
+        @at_mesage = true
       end
     end
 

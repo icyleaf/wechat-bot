@@ -133,7 +133,7 @@ module WeChat::Bot
 
       # 满足群组类型且 nickname 为空时补充一个默认的群组名（参考微信 App 设计）
       if attribute.to_sym == :nickname && value.to_s.empty? && @kind == Kind::Group
-        value = members.map {|m| m.nickname }.join("、")
+        value = members.map { |m| m.nickname }.join("、")
       end
 
       if data

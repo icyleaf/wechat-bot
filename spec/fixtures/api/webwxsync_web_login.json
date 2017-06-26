@@ -1,0 +1,129 @@
+{
+    "BaseResponse": {
+        "Ret": 0,
+        "ErrMsg": ""
+    },
+    "AddMsgCount": 1,
+    "AddMsgList": [
+        {
+            "MsgId": "3516206918352614791",
+            "FromUserName": "weixin",
+            "ToUserName": "@ccccccccccc",
+            "MsgType": 49,
+            "Content": "&lt;msg&gt; &lt;appmsg appid=\"\" sdkver=\"0\"&gt; \t&lt;title&gt;&lt;![CDATA[登录操作通知]]&gt;&lt;/title&gt; \t&lt;des&gt;&lt;![CDATA[你的微信帐号“肉肉🍖”进行了网站登录操作<br/><br/>登录微信号：meat<br/>登录网站：微论坛<br/>登录网址：wsq.discuz.qq.com<br/>登录时间：2017年06月26日17:43<br/><br/>如有疑问，请登录kf.qq.com联系在线客服]]&gt;&lt;/des&gt; \t&lt;action&gt;&lt;/action&gt; \t&lt;type&gt;5&lt;/type&gt; \t&lt;showtype&gt;1&lt;/showtype&gt;     &lt;soundtype&gt;0&lt;/soundtype&gt; \t&lt;content&gt;&lt;![CDATA[]]&gt;&lt;/content&gt; \t&lt;contentattr&gt;0&lt;/contentattr&gt; \t&lt;url&gt;&lt;![CDATA[https://open.weixin.qq.com/connect/infopage?appid=wxd813c1077086880d&amp;date=2017%E5%B9%B406%E6%9C%8826%E6%97%A517%3A43&amp;urldomain=wsq.discuz.qq.com&amp;signature=8b0afabb5f21a78c5525350b7b8c28bd#wechat_redirect]]&gt;&lt;/url&gt; \t&lt;lowurl&gt;&lt;![CDATA[]]&gt;&lt;/lowurl&gt; \t&lt;appattach&gt; \t\t&lt;totallen&gt;0&lt;/totallen&gt; \t\t&lt;attachid&gt;&lt;/attachid&gt; \t\t&lt;fileext&gt;&lt;/fileext&gt; \t&lt;/appattach&gt; \t&lt;extinfo&gt;&lt;/extinfo&gt; \t&lt;mmreader&gt; \t\t&lt;category type=\"0\" count=\"1\"&gt; \t\t\t&lt;name&gt;&lt;![CDATA[微信团队]]&gt;&lt;/name&gt; \t\t\t&lt;topnew&gt; \t\t\t\t&lt;cover&gt;&lt;![CDATA[]]&gt;&lt;/cover&gt; \t\t\t\t&lt;width&gt;0&lt;/width&gt; \t\t\t\t&lt;height&gt;0&lt;/height&gt; \t\t\t\t&lt;digest&gt;&lt;![CDATA[你的微信帐号“肉肉🍖”进行了网站登录操作<br/><br/>登录微信号：meat<br/>登录网站：微论坛<br/>登录网址：wsq.discuz.qq.com<br/>登录时间：2017年06月26日17:43<br/><br/>如有疑问，请登录kf.qq.com联系在线客服]]&gt;&lt;/digest&gt; \t\t\t&lt;/topnew&gt; \t\t\t\t&lt;item&gt; \t&lt;itemshowtype&gt;4&lt;/itemshowtype&gt; \t&lt;title&gt;&lt;![CDATA[登录操作通知]]&gt;&lt;/title&gt; \t&lt;url&gt;&lt;![CDATA[https://open.weixin.qq.com/connect/infopage?appid=wxd813c1077086880d&amp;date=2017%E5%B9%B406%E6%9C%8826%E6%97%A517%3A43&amp;urldomain=wsq.discuz.qq.com&amp;signature=8b0afabb5f21a78c5525350b7b8c28bd#wechat_redirect]]&gt;&lt;/url&gt; \t&lt;shorturl&gt;&lt;![CDATA[]]&gt;&lt;/shorturl&gt; \t&lt;longurl&gt;&lt;![CDATA[]]&gt;&lt;/longurl&gt; \t&lt;pub_time&gt;1498470229&lt;/pub_time&gt; \t&lt;cover&gt;&lt;![CDATA[]]&gt;&lt;/cover&gt; \t&lt;tweetid&gt;&lt;/tweetid&gt; \t&lt;digest&gt;&lt;![CDATA[你的微信帐号“肉肉🍖”进行了网站登录操作<br/><br/>登录微信号：meat<br/>登录网站：微论坛<br/>登录网址：wsq.discuz.qq.com<br/>登录时间：2017年06月26日17:43<br/><br/>如有疑问，请登录kf.qq.com联系在线客服]]&gt;&lt;/digest&gt; \t&lt;fileid&gt;0&lt;/fileid&gt; \t&lt;sources&gt; \t&lt;source&gt; \t&lt;name&gt;&lt;![CDATA[微信团队]]&gt;&lt;/name&gt; \t&lt;/source&gt; \t&lt;/sources&gt; \t&lt;styles&gt;&lt;topColor&gt;&lt;![CDATA[#00FF00]]&gt;&lt;/topColor&gt;<br/>&lt;style&gt;<br/>&lt;range&gt;&lt;![CDATA[{7,4}]]&gt;&lt;/range&gt;<br/>&lt;font&gt;&lt;![CDATA[s]]&gt;&lt;/font&gt;<br/>&lt;color&gt;&lt;![CDATA[#000000]]&gt;&lt;/color&gt;<br/>&lt;/style&gt;<br/>&lt;style&gt;<br/>&lt;range&gt;&lt;![CDATA[{29,8}]]&gt;&lt;/range&gt;<br/>&lt;font&gt;&lt;![CDATA[s]]&gt;&lt;/font&gt;<br/>&lt;color&gt;&lt;![CDATA[#000000]]&gt;&lt;/color&gt;<br/>&lt;/style&gt;<br/>&lt;style&gt;<br/>&lt;range&gt;&lt;![CDATA[{43,3}]]&gt;&lt;/range&gt;<br/>&lt;font&gt;&lt;![CDATA[s]]&gt;&lt;/font&gt;<br/>&lt;color&gt;&lt;![CDATA[#000000]]&gt;&lt;/color&gt;<br/>&lt;/style&gt;<br/>&lt;style&gt;<br/>&lt;range&gt;&lt;![CDATA[{52,17}]]&gt;&lt;/range&gt;<br/>&lt;font&gt;&lt;![CDATA[s]]&gt;&lt;/font&gt;<br/>&lt;color&gt;&lt;![CDATA[#000000]]&gt;&lt;/color&gt;<br/>&lt;/style&gt;<br/>&lt;style&gt;<br/>&lt;range&gt;&lt;![CDATA[{75,16}]]&gt;&lt;/range&gt;<br/>&lt;font&gt;&lt;![CDATA[s]]&gt;&lt;/font&gt;<br/>&lt;color&gt;&lt;![CDATA[#000000]]&gt;&lt;/color&gt;<br/>&lt;/style&gt;<br/>&lt;/styles&gt;\t&lt;native_url&gt;&lt;/native_url&gt;    &lt;del_flag&gt;0&lt;/del_flag&gt;     &lt;contentattr&gt;0&lt;/contentattr&gt;     &lt;play_length&gt;0&lt;/play_length&gt; \t&lt;play_url&gt;&lt;/play_url&gt; \t&lt;player&gt;&lt;![CDATA[]]&gt;&lt;/player&gt; \t&lt;template_op_type&gt;0&lt;/template_op_type&gt; \t&lt;weapp_username&gt;&lt;/weapp_username&gt; \t&lt;weapp_path&gt;&lt;/weapp_path&gt; \t&lt;weapp_version&gt;0&lt;/weapp_version&gt; \t&lt;weapp_state&gt;0&lt;/weapp_state&gt; \t&lt;/item&gt; \t\t&lt;/category&gt; \t\t&lt;publisher&gt; \t\t\t&lt;username&gt;&lt;![CDATA[weixin]]&gt;&lt;/username&gt; \t\t\t&lt;nickname&gt;&lt;![CDATA[微信团队]]&gt;&lt;/nickname&gt; \t\t&lt;/publisher&gt; \t\t&lt;template_header&gt;&lt;/template_header&gt; \t\t&lt;template_detail&gt;&lt;/template_detail&gt; \t    &lt;forbid_forward&gt;0&lt;/forbid_forward&gt; \t&lt;/mmreader&gt; \t&lt;thumburl&gt;&lt;![CDATA[]]&gt;&lt;/thumburl&gt; \t     &lt;template_id&gt;&lt;![CDATA[5Itti0pmD1gBWk8Wg7TRKAQaw43kWMeyWcJyrXw7UpU]]&gt;&lt;/template_id&gt;                     &lt;/appmsg&gt;&lt;fromusername&gt;&lt;![CDATA[weixin]]&gt;&lt;/fromusername&gt;&lt;appinfo&gt;&lt;version&gt;0&lt;/version&gt;&lt;appname&gt;&lt;![CDATA[微信团队]]&gt;&lt;/appname&gt;&lt;isforceupdate&gt;1&lt;/isforceupdate&gt;&lt;/appinfo&gt;&lt;/msg&gt;",
+            "Status": 3,
+            "ImgStatus": 1,
+            "CreateTime": 1498470229,
+            "VoiceLength": 0,
+            "PlayLength": 0,
+            "FileName": "登录操作通知",
+            "FileSize": "0",
+            "MediaId": "",
+            "Url": "https://open.weixin.qq.com/connect/infopage?appid=wxd813c1077086880d&amp;date=2017%E5%B9%B406%E6%9C%8826%E6%97%A517%3A43&amp;urldomain=wsq.discuz.qq.com&amp;signature=8b0afabb5f21a78c5525350b7b8c28bd#wechat_redirect",
+            "AppMsgType": 5,
+            "StatusNotifyCode": 0,
+            "StatusNotifyUserName": "",
+            "RecommendInfo": {
+                "UserName": "",
+                "NickName": "",
+                "QQNum": 0,
+                "Province": "",
+                "City": "",
+                "Content": "",
+                "Signature": "",
+                "Alias": "",
+                "Scene": 0,
+                "VerifyFlag": 0,
+                "AttrStatus": 0,
+                "Sex": 0,
+                "Ticket": "",
+                "OpCode": 0
+            },
+            "ForwardFlag": 0,
+            "AppInfo": {
+                "AppID": "",
+                "Type": 0
+            },
+            "HasProductId": 0,
+            "Ticket": "",
+            "ImgHeight": 0,
+            "ImgWidth": 0,
+            "SubMsgType": 0,
+            "NewMsgId": 3516206918352615000,
+            "OriContent": ""
+        }
+    ],
+    "ModContactCount": 0,
+    "ModContactList": [],
+    "DelContactCount": 0,
+    "DelContactList": [],
+    "ModChatRoomMemberCount": 0,
+    "ModChatRoomMemberList": [],
+    "Profile": {
+        "BitFlag": 0,
+        "UserName": {
+            "Buff": ""
+        },
+        "NickName": {
+            "Buff": ""
+        },
+        "BindUin": 0,
+        "BindEmail": {
+            "Buff": ""
+        },
+        "BindMobile": {
+            "Buff": ""
+        },
+        "Status": 0,
+        "Sex": 0,
+        "PersonalCard": 0,
+        "Alias": "",
+        "HeadImgUpdateFlag": 0,
+        "HeadImgUrl": "",
+        "Signature": ""
+    },
+    "ContinueFlag": 0,
+    "SyncKey": {
+        "Count": 8,
+        "List": [
+            {
+                "Key": 1,
+                "Val": 111
+            },
+            {
+                "Key": 2,
+                "Val": 22
+            },
+            {
+                "Key": 3,
+                "Val": 33
+            },
+            {
+                "Key": 11,
+                "Val": 444
+            }
+        ]
+    },
+    "SKey": "",
+    "SyncCheckKey": {
+        "Count": 8,
+        "List": [
+            {
+                "Key": 1,
+                "Val": 1111
+            },
+            {
+                "Key": 2,
+                "Val": 222
+            },
+            {
+                "Key": 3,
+                "Val": 333
+            },
+            {
+                "Key": 11,
+                "Val": 444
+            }
+        ]
+    }
+}
