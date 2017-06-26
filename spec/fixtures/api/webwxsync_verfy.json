@@ -1,0 +1,129 @@
+{
+    "BaseResponse": {
+        "Ret": 0,
+        "ErrMsg": ""
+    },
+    "AddMsgCount": 1,
+    "AddMsgList": [
+        {
+            "MsgId": "2072363471476057614",
+            "FromUserName": "fmessage",
+            "ToUserName": "@cccccccccccccccc",
+            "MsgType": 37,
+            "Content": "&lt;msg fromusername=\"icyleaf\" encryptusername=\"aaaaaaaaa@stranger\" fromnickname=\"icyleaf<span class=\"emoji emoji1f37a\"></span>\" content=\"我是icyleaf\"  shortpy=\"ICYLEAF?\" imagestatus=\"3\" scene=\"3\" country=\"NL\" province=\"Rotterdam\" city=\"\" sign=\"爱好户外的代码仔，下厨初心者\" percard=\"1\" sex=\"1\" alias=\"\" weibo=\"\" weibonickname=\"\" albumflag=\"0\" albumstyle=\"0\" albumbgimgid=\"916984107630592_916984107630592\" snsflag=\"49\" snsbgimgid=\"http://mmsns.qpic.cn/mmsns/pbuUcBancwpmPuCsleNS6mqkicTJ4Z50HYANOp5SwUdHLU0g/0\" snsbgobjectid=\"11932405796503722\" mhash=\"ce0d1651a79363d221fd668d359a\" mfullhash=\"ce0d1651a79363d22fd668d359a\" bigheadimgurl=\"http://wx.qlogo.cn/mmhead/ver_1/cF4rribxYH1bmLvoHVwweibgwnENFjcDjQcnuKQxuyQMzfxZZuHvpfA5icpGicguLnBIkyBiagtiboNREOFz82Q/0\" smallheadimgurl=\"http://wx.qlogo.cn/mmhead/ver_1/cF4rribxYeHLvoHVwweibgwnENFjcDjQcnuKQxuyQMzfxZZuHvpfA5icpGicguLnBIkyBiagtiboNREOFz82Q/132\" ticket=\"v2_8bbdcbb874412bff7a689586ab7595e025cb6721216ce80a321ef0f5badb739bac81793079d39e20104b2ed31944@stranger\" opcode=\"2\" googlecontact=\"\" qrticket=\"\" chatroomusername=\"\" sourceusername=\"\" sourcenickname=\"\"&gt;&lt;brandlist count=\"0\" ver=\"658641770\"&gt;&lt;/brandlist&gt;&lt;/msg&gt;",
+            "Status": 3,
+            "ImgStatus": 1,
+            "CreateTime": 1498458422,
+            "VoiceLength": 0,
+            "PlayLength": 0,
+            "FileName": "",
+            "FileSize": "",
+            "MediaId": "",
+            "Url": "",
+            "AppMsgType": 0,
+            "StatusNotifyCode": 0,
+            "StatusNotifyUserName": "",
+            "RecommendInfo": {
+                "UserName": "@aaaaaaaaaaaaaaaa",
+                "NickName": "icyleaf<span class=\"emoji emoji1f37a\"></span>",
+                "QQNum": 0,
+                "Province": "Rotterdam",
+                "City": "",
+                "Content": "我是icyleaf",
+                "Signature": "爱好户外的代码仔，下厨初心者",
+                "Alias": "",
+                "Scene": 3,
+                "VerifyFlag": 0,
+                "AttrStatus": 37986749,
+                "Sex": 1,
+                "Ticket": "v2_8bbdcbb874412bfb6721216ce80a321ef0f5badb739bac81793079d39e20104b2ed31944@stranger",
+                "OpCode": 2
+            },
+            "ForwardFlag": 0,
+            "AppInfo": {
+                "AppID": "",
+                "Type": 0
+            },
+            "HasProductId": 0,
+            "Ticket": "",
+            "ImgHeight": 0,
+            "ImgWidth": 0,
+            "SubMsgType": 0,
+            "NewMsgId": 2072363471476057600,
+            "OriContent": ""
+        }
+    ],
+    "ModContactCount": 0,
+    "ModContactList": [],
+    "DelContactCount": 0,
+    "DelContactList": [],
+    "ModChatRoomMemberCount": 0,
+    "ModChatRoomMemberList": [],
+    "Profile": {
+        "BitFlag": 0,
+        "UserName": {
+            "Buff": ""
+        },
+        "NickName": {
+            "Buff": ""
+        },
+        "BindUin": 0,
+        "BindEmail": {
+            "Buff": ""
+        },
+        "BindMobile": {
+            "Buff": ""
+        },
+        "Status": 0,
+        "Sex": 0,
+        "PersonalCard": 0,
+        "Alias": "",
+        "HeadImgUpdateFlag": 0,
+        "HeadImgUrl": "",
+        "Signature": ""
+    },
+    "ContinueFlag": 0,
+    "SyncKey": {
+        "Count": 8,
+        "List": [
+            {
+                "Key": 1,
+                "Val": 111
+            },
+            {
+                "Key": 2,
+                "Val": 22
+            },
+            {
+                "Key": 3,
+                "Val": 33
+            },
+            {
+                "Key": 11,
+                "Val": 444
+            }
+        ]
+    },
+    "SKey": "",
+    "SyncCheckKey": {
+        "Count": 8,
+        "List": [
+            {
+                "Key": 1,
+                "Val": 1111
+            },
+            {
+                "Key": 2,
+                "Val": 222
+            },
+            {
+                "Key": 3,
+                "Val": 333
+            },
+            {
+                "Key": 11,
+                "Val": 444
+            }
+        ]
+    }
+}

@@ -146,7 +146,7 @@
                 {
                     "Uin": 0,
                     "UserName": "@cccccccccccccccccc",
-                    "NickName": "🍖",
+                    "NickName": "肉肉🍖",
                     "AttrStatus": 33652769,
                     "PYInitial": "",
                     "PYQuanPin": "",
@@ -169,8 +169,13 @@
             "KeyWord": ""
         }
     ],
-    "DelContactCount": 0,
-    "DelContactList": [],
+    "DelContactCount": 1,
+    "DelContactList": [
+        {
+            "UserName": "@aaaaaaaaaaaaaaaaaaaaaa",
+            "ContactFlag": 0
+        }
+    ],
     "ModChatRoomMemberCount": 0,
     "ModChatRoomMemberList": [],
     "Profile": {

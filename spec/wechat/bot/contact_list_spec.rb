@@ -23,6 +23,6 @@ RSpec.describe WeChat::Bot::ContactList do
     expect(group.nickname).to eq("修改测试群聊")
 
     group = list.find(username: "@@yyyyyyyyyyyyyyyyyyy")
-    expect(group.nickname).to eq("")
+    expect(group.nickname).to eq("icyleaf\u{1f37a}、肉肉🍖")
   end
 end
