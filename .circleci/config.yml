@@ -10,4 +10,4 @@ jobs:
     steps:
       - checkout
       - run: bundle install
-      - deploy: rake spec
+      - run: rake spec
