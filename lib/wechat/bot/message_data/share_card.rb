@@ -1,5 +1,5 @@
 module WeChat::Bot::MessageData
-  class ShareLink
+  class ShareCard
     def self.parse(raw)
       self.new(raw)
     end

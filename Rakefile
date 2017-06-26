@@ -25,7 +25,7 @@ task :bot do
         else
           m.reply m.media_id, type: :emoticon
         end
-      when WeChat::Bot::Message::Kind::ShareLink
+      when WeChat::Bot::Message::Kind::ShareCard
         m.reply "标题：#{m.meta_data.title}\n描述：#{m.meta_data.description}\n#{m.meta_data.link}"
       when WeChat::Bot::Message::Kind::System
         m.reply "系统消息：#{m.message}"

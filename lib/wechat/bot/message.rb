@@ -1,4 +1,4 @@
-require "wechat/bot/message_data/share_link"
+require "wechat/bot/message_data/share_card"
 
 module WeChat::Bot
   # 微信消息
@@ -10,10 +10,11 @@ module WeChat::Bot
       Voice = :voice
       ShortVideo = :short_video
       Emoticon = :emoticon
-      ShareLink = :share_link
+      ShareCard = :share_link
       # RedPacage = :red_package
       # BusinessCard = :business_card
       # MusicLink = :music_link
+      Verify = :verify
       System = :system
       Unkown = :unkown
     end
@@ -67,7 +68,7 @@ module WeChat::Bot
 
       parse
 
-      @bot.logger.debug "Message Raw: #{@raw}"
+      # @bot.logger.verbose "Message Raw: #{@raw}"
     end
 
     # 回复消息
@@ -89,17 +90,18 @@ module WeChat::Bot
       message = @raw["Content"].convert_emoji
       message = CGI.unescape_html(message) if @kinde != Message::Kind::Text
       if match = group_message(message)
-        from_username = match[0]
+        # from_username = match[0]
         message = match[1]
       end
 
       @message = message
+      # TODO: 来自于特殊账户无法获取联系人信息，需要单独处理
       @from = @bot.contact_list.find(username: @raw["FromUserName"])
       parse_emoticon if @kind == Message::Kind::Emoticon
 
       case @kind
-      when Message::Kind::ShareLink
-        @meta_data = MessageData::ShareLink.parse(@message)
+      when Message::Kind::ShareCard
+        @meta_data = MessageData::ShareCard.parse(@message)
       end
 
       parse_events
@@ -155,9 +157,10 @@ module WeChat::Bot
     #  - 1: Text 文本消息
     #  - 3: Image 图片消息
     #  - 34: Voice 语言消息
+    #  - 37: 验证消息
     #  - 42: BusinessCard 名片消息
     #  - 47: Emoticon 微信表情
-    #  - 49: ShareLink 分享链接消息
+    #  - 49: ShareCard 分享链接消息
     #  - 62: ShortVideo 短视频消息
     #  - 1000: System 系统消息
     #  - Unkown 未知消息
@@ -171,6 +174,8 @@ module WeChat::Bot
                 Message::Kind::Image
               when 34
                 Message::Kind::Voice
+              when 37
+                Message::Kind::Verify
               when 42
                 Message::Kind::BusinessCard
               when 62
@@ -178,7 +183,7 @@ module WeChat::Bot
               when 47
                 Message::Kind::Emoticon
               when 49
-                Message::Kind::ShareLink
+                Message::Kind::ShareCard
               when 10000
                 Message::Kind::System
               else
