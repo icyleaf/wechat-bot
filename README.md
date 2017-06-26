@@ -13,7 +13,7 @@
 ```ruby
 require 'wechat-bot'
 
-bot = Wechat::Bot::Client.new do
+bot = Wechat::Bot.new do
   on :message, "ping" do |message|
     message.reply "PONG"
   end
