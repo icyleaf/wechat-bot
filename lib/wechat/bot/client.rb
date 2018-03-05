@@ -111,7 +111,7 @@ module WeChat::Bot
     end
 
     # 获取二维码图片
-    def show_qr_code(uuid, renderer = "ansi")
+    def show_qr_code(uuid)
       @bot.logger.info "获取登录用扫描二维码 ... "
       url = File.join(@bot.config.auth_url, "l", uuid)
       qrcode = RQRCode::QRCode.new(url)
@@ -153,11 +153,11 @@ module WeChat::Bot
       r = @session.get(File.join(@bot.config.auth_url, "cgi-bin/mmwebwx-bin/login"), params: params)
       data = r.parse(:js)
       status = case data["code"]
-      when 200 then :logged
-      when 201 then :scaned
-      when 408 then :waiting
-      else          :timeout
-      end
+               when 200 then :logged
+               when 201 then :scaned
+               when 408 then :waiting
+               else          :timeout
+               end
 
       [status, data]
     end

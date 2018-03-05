@@ -126,7 +126,7 @@ module WeChat::Bot
       @client.logout if @client.logged? && @client.alive?
     end
 
-    private
+    # private
 
     # def defaults_logger
     #   @logger = Logger.new($stdout)

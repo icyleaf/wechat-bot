@@ -42,7 +42,7 @@ module WeChat::Bot
 
     def fatal(exception)
       message = ["#{exception.backtrace.first}: #{exception.message} (#{exception.class})"]
-      message.concat exception.backtrace[1..-1].map {|s| "\t" + s}
+      message.concat(exception.backtrace[1..-1].map {|s| "\t" + s})
       log(:fatal, message.join("\n"))
     end
 

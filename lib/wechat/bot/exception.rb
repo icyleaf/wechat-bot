@@ -1,4 +1,4 @@
 module WeChat::Bot
-  class NoReplyException < Exception
+  class NoReplyException < RuntimeError
   end
 end

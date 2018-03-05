@@ -243,8 +243,8 @@ module WeChat::Bot
     end
 
     def parse_share
+      # TODO: 完成解析
       data = MultiXml.parse(@message)
-
     end
 
     # 解析用户的群消息

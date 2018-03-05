@@ -12,3 +12,6 @@ Style/AsciiComments:
 
 Style/SpecialGlobalVars:
   Enabled: false
+
+Lint/AssignmentInCondition:
+  Enabled: false

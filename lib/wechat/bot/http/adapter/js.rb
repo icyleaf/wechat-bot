@@ -9,7 +9,7 @@ module WeChat::Bot
       # 提示：不可逆转
       class JS < ::HTTP::MimeType::Adapter
         # Encodes object to js
-        def encode(obj)
+        def encode(_)
           "" # NO NEED encode
         end
 

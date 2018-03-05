@@ -1,12 +1,14 @@
 require 'bundler/gem_tasks'
-require 'rspec/core/rake_task'
-
 require 'wechat_bot'
 require 'awesome_print'
 
+require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new(:spec)
 
-task :default => :spec
+require 'rubocop/rake_task'
+RuboCop::RakeTask.new
+
+task :default => [:rubocop, :spec]
 
 desc 'Run a sample wechat bot'
 task :bot do
