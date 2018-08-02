@@ -1,9 +1,8 @@
-require "wechat/bot/version"
-require "wechat/bot/ext/wechat_emoji_string"
-
 require "wechat/bot/core"
 require "wechat/bot/client"
 require "wechat/bot/exception"
+require "wechat/bot/version"
+require "wechat/bot/ext/wechat_emoji_string"
 
 module WeChat::Bot
   def self.new(&block)
