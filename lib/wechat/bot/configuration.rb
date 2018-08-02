@@ -1,3 +1,5 @@
+require 'ostruct'
+
 module WeChat::Bot
   class Configuration < OpenStruct
     # 默认配置
