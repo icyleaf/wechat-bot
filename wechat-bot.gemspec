@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "awesome_print"
 
   spec.add_dependency "colorize", "~> 0.8.1"
-  spec.add_dependency "http", ">= 2.2.2", "< 4.2.0"
+  spec.add_dependency "http", ">= 2.2.2", "< 4.3.0"
   spec.add_dependency "rqrcode", ">= 0.10.1", "< 1.2.0"
   spec.add_dependency "multi_xml", "~> 0.6.0"
   # spec.add_dependency "representable", "~> 3.0.4"
