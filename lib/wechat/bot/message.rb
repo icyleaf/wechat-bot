@@ -1,4 +1,5 @@
 require "wechat/bot/message_data/share_card"
+require 'cgi/util'
 
 module WeChat::Bot
   # 微信消息
